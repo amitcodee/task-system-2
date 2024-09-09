@@ -17,29 +17,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_result($name, $stored_password, $role);
         $stmt->fetch();
 
-        // Compare plain text password
-        if ($password === $stored_password) {
-            // Login successful
+        // Use password_verify() if passwords are hashed
+        if (password_verify($password, $stored_password)) {
+            // Login successful, set session variables
+            $_SESSION['user_email'] = $email;
             $_SESSION['name'] = $name;
             $_SESSION['role'] = $role;
 
-            // Redirect all users to the dashboard
+            // Regenerate session ID to prevent session fixation attacks
+            session_regenerate_id(true);
+
+            // Redirect to dashboard
             header("Location: dashboard.php");
             exit();
         } else {
             // Invalid password
-            echo "Invalid credentials!";
+            $_SESSION['error'] = "Invalid credentials!";
+            header("Location: login.php");
+            exit();
         }
     } else {
         // Invalid email
-        echo "Invalid credentials!";
+        $_SESSION['error'] = "Invalid credentials!";
+        header("Location: login.php");
+        exit();
     }
 
     $stmt->close();
     $conn->close();
 } else {
-    // Redirect to login page if accessed directly
+    // If accessed directly, redirect to login page
     header("Location: login.php");
     exit();
 }
-?>

@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_email'])) {
 }
 
 // Retrieve projects from the database
-$query = $conn->prepare("SELECT id, name, color, is_favorite, is_archived FROM projects WHERE user_email = ?");
+$query = $conn->prepare("SELECT id, name, color, is_favorite, is_archived FROM projects WHERE created_by = ?");
 $query->bind_param("s", $_SESSION['user_email']);
 $query->execute();
 $query->bind_result($project_id, $project_name, $project_color, $is_favorite, $is_archived);
@@ -55,65 +55,68 @@ $query->close();
                         <!-- Active and Archived Toggle Buttons -->
                         <button id="activeButton" onclick="showActive()" class="bg-white border px-4 py-2 rounded-md shadow hover:bg-gray-50 focus:outline-none">Active</button>
                         <button id="archiveButton" onclick="showArchived()" class="bg-white border px-4 py-2 rounded-md shadow hover:bg-gray-50 focus:outline-none">Archived</button>
-                        <!-- Updated: Create Project Button triggers modal -->
+                        <!-- Create Project Button -->
                         <button onclick="openModal()" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow hover:bg-blue-600">Create Project</button>
                     </div>
                 </div>
 
                 <!-- Active Projects -->
-                <div id="activeProjects" class="mt-6 bg-white rounded-lg shadow-md">
-                    <ul class="divide-y divide-gray-200">
-                        <?php foreach ($projects as $project): ?>
-                            <?php if (!$project['is_archived']): // Only show active projects ?>
-                                <li class="flex items-center justify-between px-6 py-4">
-                                    <div class="flex items-center space-x-2">
-                                        <!-- Project Color Dot -->
-                                        <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
-                                        <!-- Project Name -->
-                                        <span class="text-gray-700"><?php echo htmlspecialchars($project['name']); ?></span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <!-- Favorite Star -->
-                                        <form method="POST" action="toggle_favorite.php">
-                                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                                            <button type="submit" class="focus:outline-none">
-                                                <?php if ($project['is_favorite']): ?>
-                                                    <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                                                    </svg>
-                                                <?php else: ?>
-                                                    <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                                                    </svg>
-                                                <?php endif; ?>
-                                            </button>
-                                        </form>
+               <!-- Active Projects -->
+<div id="activeProjects" class="mt-6 bg-white rounded-lg shadow-md">
+    <ul class="divide-y divide-gray-200">
+        <?php foreach ($projects as $project): ?>
+            <?php if (!$project['is_archived']): // Only show active projects ?>
+                <li class="flex items-center justify-between px-6 py-4">
+                    <div class="flex items-center space-x-2">
+                        <!-- Project Color Dot -->
+                        <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
+                        <!-- Project Name -->
+                        <span class="text-gray-700"><?php echo htmlspecialchars($project['name']); ?></span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <!-- Favorite Star -->
+                        <form method="POST" action="toggle_favorite.php">
+                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                            <input type="hidden" name="is_favorite" value="<?php echo $project['is_favorite'] ? '0' : '1'; ?>">
+                            <button type="submit" class="focus:outline-none">
+                                <?php if ($project['is_favorite']): ?>
+                                    <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+                                    </svg>
+                                <?php else: ?>
+                                    <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+                                    </svg>
+                                <?php endif; ?>
+                            </button>
+                        </form>
 
-                                        <!-- Archive Button -->
-                                        <form method="POST" action="archive_project.php">
-                                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                                            <button type="submit" class="focus:outline-none">
-                                                <svg class="h-6 w-6 text-gray-400 hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 12H2V9a2 2 0 012-2h16a2 2 0 012 2v3h-5v2h4v7H4v-7h4v-2H4zm6 0v2h-4v-2h4z"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
+                        <!-- Archive Button -->
+                        <form method="POST" action="archive_project.php">
+                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                            <button type="submit" class="focus:outline-none">
+                                <svg class="h-6 w-6 text-gray-400 hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 12H2V9a2 2 0 012-2h16a2 2 0 012 2v3h-5v2h4v7H4v-7h4v-2H4zm6 0v2h-4v-2h4z"></path>
+                                </svg>
+                            </button>
+                        </form>
 
-                                        <!-- Delete Button -->
-                                        <form method="POST" action="delete_project.php">
-                                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                                            <button type="submit" class="focus:outline-none">
-                                                <svg class="h-6 w-6 text-gray-400 hover:text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M19 6h-2.5l-1-1h-5l-1 1H5v2h14V6zM7 9v10h10V9H7zM9 11h2v6H9v-6zM13 11h2v6h-2v-6z"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </li>
-                            <?php endif; ?>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
+                        <!-- Delete Button -->
+                        <form method="POST" action="delete_project.php">
+                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                            <button type="submit" class="focus:outline-none">
+                                <svg class="h-6 w-6 text-gray-400 hover:text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 6h-2.5l-1-1h-5l-1 1H5v2h14V6zM7 9v10h10V9H7zM9 11h2v6H9v-6zM13 11h2v6h-2v-6z"></path>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </li>
+            <?php endif; ?>
+        <?php endforeach; ?>
+    </ul>
+</div>
+
 
                 <!-- Archived Projects (Initially Hidden) -->
                 <div id="archivedProjects" class="mt-6 bg-white rounded-lg shadow-md hidden">

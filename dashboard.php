@@ -1,11 +1,11 @@
 <?php
 session_start();
-
-// Check if the user is logged in and is an admin
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['user_email'])) {
     header('Location: login.php');
     exit;
 }
+// You can include a database connection here if necessary
+// include 'config.php';
 ?>
 
 <!DOCTYPE html>
@@ -29,7 +29,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
             <!-- Dashboard Content -->
             <main class="flex-1 p-6 bg-gray-100">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Card 1 -->
+                    <!-- Open Tasks Card (Dynamic Example) -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center">
                             <div class="p-3 bg-purple-200 rounded-full">
@@ -39,12 +39,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             </div>
                             <div class="ml-4">
                                 <h4 class="text-lg font-semibold">Open Tasks</h4>
-                                <p class="text-gray-600 text-sm">138</p>
+                                <p class="text-gray-600 text-sm">
+                                    <!-- Dynamic Data (You need to calculate this from the database) -->
+                                    138 
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 2 -->
+                    <!-- Completed Tasks Card (Dynamic Example) -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center">
                             <div class="p-3 bg-green-200 rounded-full">
@@ -54,12 +57,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             </div>
                             <div class="ml-4">
                                 <h4 class="text-lg font-semibold">Completed Tasks</h4>
-                                <p class="text-gray-600 text-sm">60</p>
+                                <p class="text-gray-600 text-sm">
+                                    <!-- Dynamic Data -->
+                                    60
+                                </p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Card 3 -->
+                    <!-- Total Projects Card (Dynamic Example) -->
                     <div class="bg-white p-4 rounded-lg shadow">
                         <div class="flex items-center">
                             <div class="p-3 bg-blue-200 rounded-full">
@@ -69,7 +75,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                             </div>
                             <div class="ml-4">
                                 <h4 class="text-lg font-semibold">Total Projects</h4>
-                                <p class="text-gray-600 text-sm">17</p>
+                                <p class="text-gray-600 text-sm">
+                                    <!-- Dynamic Data -->
+                                    17
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -104,7 +113,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 labels: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'],
                 datasets: [{
                     label: 'Tasks Completed',
-                    data: [4, 3, 2, 0, 5, 4, 2],
+                    data: [4, 3, 2, 0, 5, 4, 2], // Dynamic data
                     borderColor: 'rgba(96, 165, 250, 1)',
                     backgroundColor: 'rgba(96, 165, 250, 0.3)',
                     fill: true,
@@ -129,7 +138,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 datasets: [{
                     label: 'Completed Tasks',
-                    data: [0, 0, 0, 0, 0, 0, 0, 20, 10, 0, 0, 0],
+                    data: [0, 0, 0, 0, 0, 0, 0, 20, 10, 0, 0, 0], // Dynamic data
                     borderColor: 'rgba(96, 165, 250, 1)',
                     backgroundColor: 'rgba(96, 165, 250, 0.3)',
                     fill: true,

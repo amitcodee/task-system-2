@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Retrieve form data
     $project_name = trim($_POST['project_name']);
     $color = trim($_POST['color']);
-    $user_email = $_SESSION['user_email']; // Use logged-in user's email
+    $created_by = $_SESSION['user_email']; // Use logged-in user's email as 'created_by'
 
     // Validate form data
     if (empty($project_name) || empty($color)) {
@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Prepare and execute the query to insert a new project into the database
-    $stmt = $conn->prepare("INSERT INTO projects (name, color, user_email, is_favorite, is_archived) VALUES (?, ?, ?, 0, 0)");
-    $stmt->bind_param("sss", $project_name, $color, $user_email);
+    $stmt = $conn->prepare("INSERT INTO projects (name, color, created_by, is_favorite, is_archived) VALUES (?, ?, ?, 0, 0)");
+    $stmt->bind_param("sss", $project_name, $color, $created_by);
 
     // Execute the query
     if ($stmt->execute()) {
