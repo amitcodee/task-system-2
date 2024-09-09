@@ -1,7 +1,8 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user']) || $_SESSION['user'] !== 'admin') {
+// Check if the user is logged in and is an admin
+if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
     header('Location: login.php');
     exit;
 }
@@ -102,7 +103,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user'] !== 'admin') {
             data: {
                 labels: ['Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon'],
                 datasets: [{
-                    label: 'Tasks',
+                    label: 'Tasks Completed',
                     data: [4, 3, 2, 0, 5, 4, 2],
                     borderColor: 'rgba(96, 165, 250, 1)',
                     backgroundColor: 'rgba(96, 165, 250, 0.3)',

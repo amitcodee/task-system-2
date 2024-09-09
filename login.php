@@ -8,11 +8,13 @@
 </head>
 <body class="bg-gray-900 min-h-screen flex items-center justify-center">
     <div class="w-full max-w-md mx-auto bg-gray-800 p-8 rounded-lg shadow-lg">
+        <!-- Title -->
         <div class="text-center mb-8">
             <h1 class="text-2xl text-white font-semibold">Spack</h1>
         </div>
 
-        <form action="authenticate.php" method="POST">
+        <!-- Login Form -->
+        <form action="auth.php" method="POST">
             <!-- Email Input -->
             <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-300">Email</label>
