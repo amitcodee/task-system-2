@@ -8,6 +8,15 @@ if (!isset($_SESSION['user_email'])) {
     exit;
 }
 
+// Fetch the logged-in user's role
+$logged_in_user_role = '';
+$query_role = $conn->prepare("SELECT role FROM users WHERE email = ?");
+$query_role->bind_param("s", $_SESSION['user_email']);
+$query_role->execute();
+$query_role->bind_result($logged_in_user_role);
+$query_role->fetch();
+$query_role->close();
+
 // Retrieve all users
 $query = $conn->prepare("SELECT id, name, email, role FROM users");
 $query->execute();
@@ -31,6 +40,7 @@ $query->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Team Members</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body class="bg-gray-100">
 <div class="flex h-screen">
@@ -49,7 +59,9 @@ $query->close();
                 <div class="bg-white rounded-lg shadow-lg">
                     <div class="p-4 flex justify-between items-center">
                         <h2 class="text-2xl font-semibold">Team Members</h2>
-                        <button onclick="openCreateModal()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create Member</button>
+                        <?php if ($logged_in_user_role === 'Admin'): ?>
+                            <button onclick="openCreateModal()" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create Member</button>
+                        <?php endif; ?>
                     </div>
 
                     <table class="min-w-full divide-y divide-gray-200">
@@ -61,29 +73,28 @@ $query->close();
                                 <th class="px-6 py-3">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="memberTable">
                             <?php foreach ($members as $member): ?>
-                                <tr>
+                                <tr id="member_<?php echo $member['id']; ?>">
                                     <td class="px-6 py-4"><?php echo htmlspecialchars($member['name']); ?></td>
                                     <td class="px-6 py-4"><?php echo htmlspecialchars($member['email']); ?></td>
                                     <td class="px-6 py-4"><?php echo htmlspecialchars($member['role']); ?></td>
                                     <td class="px-6 py-4 flex space-x-2">
-                                        <!-- Edit Button triggers modal -->
-                                        <button onclick="openEditModal('<?php echo $member['id']; ?>', '<?php echo $member['name']; ?>', '<?php echo $member['email']; ?>', '<?php echo $member['role']; ?>')" class="text-blue-500">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13.5V17h3.5l7.036-7.036a2.121 2.121 0 00-3-3L9.5 13.5z"></path>
-                                            </svg>
-                                        </button>
+                                        <?php if ($logged_in_user_role === 'Admin'): ?>
+                                            <!-- Edit Button triggers modal -->
+                                            <button onclick="openEditModal('<?php echo $member['id']; ?>', '<?php echo $member['name']; ?>', '<?php echo $member['email']; ?>', '<?php echo $member['role']; ?>')" class="text-blue-500">
+                                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13.5V17h3.5l7.036-7.036a2.121 2.121 0 00-3-3L9.5 13.5z"></path>
+                                                </svg>
+                                            </button>
 
-                                        <!-- Delete Button -->
-                                        <form method="POST" action="delete_member.php">
-                                            <input type="hidden" name="id" value="<?php echo $member['id']; ?>">
-                                            <button type="submit" class="text-red-500">
+                                            <!-- Delete Button -->
+                                            <button onclick="deleteMember('<?php echo $member['id']; ?>')" class="text-red-500">
                                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-1 14H6L5 7m5-4h4l1 4H9l1-4z"></path>
                                                 </svg>
                                             </button>
-                                        </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -108,25 +119,25 @@ $query->close();
             </button>
         </div>
 
-        <form method="POST" action="create_member.php">
+        <form id="createMemberForm">
             <div class="mb-4">
                 <label for="member_name" class="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" id="member_name" name="member_name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="text" id="member_name" name="member_name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
             <div class="mb-4">
                 <label for="member_email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="member_email" name="member_email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="email" id="member_email" name="member_email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
             <div class="mb-4">
                 <label for="member_password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="member_password" name="member_password" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="password" id="member_password" name="member_password" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
             <div class="mb-6">
                 <label for="member_role" class="block text-sm font-medium text-gray-700">Role</label>
-                <select id="member_role" name="member_role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <select id="member_role" name="member_role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
                     <option value="Admin">Admin</option>
                     <option value="Manager">Manager</option>
                     <option value="Member">Member</option>
@@ -134,8 +145,8 @@ $query->close();
             </div>
 
             <div class="flex justify-end space-x-2">
-                <button type="button" onclick="closeModal('createMemberModal')" class="bg-white text-gray-700 px-4 py-2 border border-gray-300 rounded-md shadow-sm">Cancel</button>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm">Create Member</button>
+                <button type="button" onclick="closeModal('createMemberModal')" class="bg-white text-gray-700 px-4 py-2 border border-gray-300 rounded-md">Cancel</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Create Member</button>
             </div>
         </form>
     </div>
@@ -153,27 +164,27 @@ $query->close();
             </button>
         </div>
 
-        <form method="POST" action="edit_member.php">
+        <form id="editMemberForm">
             <input type="hidden" id="edit_member_id" name="member_id">
 
             <div class="mb-4">
                 <label for="edit_member_name" class="block text-sm font-medium text-gray-700">Name</label>
-                <input type="text" id="edit_member_name" name="member_name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="text" id="edit_member_name" name="member_name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
             <div class="mb-4">
                 <label for="edit_member_email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="edit_member_email" name="member_email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="email" id="edit_member_email" name="member_email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
             <div class="mb-4">
-                <label for="edit_member_password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="edit_member_password" name="member_password" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                <label for="edit_member_password" class="block text-sm font-medium text-gray-700">Password (optional)</label>
+                <input type="password" id="edit_member_password" name="member_password" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
             </div>
 
             <div class="mb-6">
                 <label for="edit_member_role" class="block text-sm font-medium text-gray-700">Role</label>
-                <select id="edit_member_role" name="member_role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
+                <select id="edit_member_role" name="member_role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
                     <option value="Admin">Admin</option>
                     <option value="Manager">Manager</option>
                     <option value="Member">Member</option>
@@ -181,8 +192,8 @@ $query->close();
             </div>
 
             <div class="flex justify-end space-x-2">
-                <button type="button" onclick="closeModal('editMemberModal')" class="bg-white text-gray-700 px-4 py-2 border border-gray-300 rounded-md shadow-sm">Cancel</button>
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md shadow-sm">Update Member</button>
+                <button type="button" onclick="closeModal('editMemberModal')" class="bg-white text-gray-700 px-4 py-2 border border-gray-300 rounded-md">Cancel</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Update Member</button>
             </div>
         </form>
     </div>
@@ -204,6 +215,55 @@ $query->close();
     function closeModal(modalId) {
         document.getElementById(modalId).classList.add('hidden');
     }
+
+    // AJAX for creating a member
+    $('#createMemberForm').on('submit', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: 'create_member.php',
+            data: $(this).serialize(),
+            success: function(response) {
+                alert(response);
+                location.reload(); // Reload the page after creation
+            }
+        });
+    });
+
+    // AJAX for editing a member
+    $('#editMemberForm').on('submit', function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            type: 'POST',
+            url: 'edit_member.php',
+            data: $(this).serialize(),
+            success: function(response) {
+                alert(response);
+                location.reload(); // Reload the page after update
+            }
+        });
+    });
+
+    function deleteMember(memberId) {
+    if (confirm('Are you sure you want to delete this member?')) {
+        $.ajax({
+            type: 'POST',
+            url: 'delete_member.php',
+            data: { id: memberId },
+            success: function(response) {
+                alert(response); // Show response message
+                if (response.trim() === "Member deleted successfully") {
+                    $('#member_' + memberId).remove(); // Remove the row from the table
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('Error: ' + error); // In case there's an issue with the request
+            }
+        });
+    }
+}
 </script>
 
 </body>

@@ -1,3 +1,83 @@
+<?php
+session_start();
+include 'config.php'; // Include your database connection
+
+// Check if user is logged in
+if (!isset($_SESSION['user_email'])) {
+    header('Location: login.php');
+    exit;
+}
+
+// Fetch the logged-in user's role to determine permissions
+$user_role_query = $conn->prepare("SELECT role FROM users WHERE email = ?");
+$user_role_query->bind_param("s", $_SESSION['user_email']);
+$user_role_query->execute();
+$user_role_query->bind_result($user_role);
+$user_role_query->fetch();
+$user_role_query->close();
+
+// Allow task assignment only for Admin or Manager
+if (!in_array($user_role, ['Admin', 'Manager'])) {
+    echo "You do not have permission to assign tasks.";
+    exit;
+}
+
+// Fetch projects from the database
+$projects = [];
+$project_query = $conn->prepare("SELECT id, name FROM projects");
+$project_query->execute();
+$project_query->bind_result($project_id, $project_name);
+while ($project_query->fetch()) {
+    $projects[] = [
+        'id' => $project_id,
+        'name' => $project_name
+    ];
+}
+$project_query->close();
+
+// Fetch all users for assigning tasks
+$users = [];
+$user_query = $conn->prepare("SELECT id, name, profile_image FROM users");
+$user_query->execute();
+$user_query->bind_result($user_id, $user_name, $user_profile_image);
+while ($user_query->fetch()) {
+    $users[] = [
+        'id' => $user_id,
+        'name' => $user_name,
+        'profile_image' => $user_profile_image
+    ];
+}
+$user_query->close();
+
+// If the form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $task_name = $_POST['task_name'];
+    $description = $_POST['description'];
+    $project_list = $_POST['project_list'];
+    $due_date = $_POST['due_date'];
+    $assignees = $_POST['assignees'];
+
+    // Insert task into the tasks table
+    $task_insert_query = $conn->prepare("INSERT INTO tasks (name, description, project_list, due_date, status) VALUES (?, ?, ?, ?, 'Pending')");
+    $task_insert_query->bind_param("ssis", $task_name, $description, $project_list, $due_date);
+    $task_insert_query->execute();
+    $task_id = $conn->insert_id; // Get the inserted task ID
+    $task_insert_query->close();
+
+    // Insert the assignees into the task_assignees table
+    foreach ($assignees as $assignee_id) {
+        $assign_task_query = $conn->prepare("INSERT INTO task_assignees (task_id, user_id) VALUES (?, ?)");
+        $assign_task_query->bind_param("ii", $task_id, $assignee_id);
+        $assign_task_query->execute();
+        $assign_task_query->close();
+    }
+
+    // Redirect to tasks list or success page
+    header("Location: my_task.php");
+    exit;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +102,7 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             cursor: pointer;
+            background-color: white;
         }
 
         .dropdown-content {
@@ -29,10 +110,10 @@
             position: absolute;
             background-color: white;
             width: 100%;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
             z-index: 1;
             border-radius: 6px;
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
         }
 
@@ -41,6 +122,7 @@
             display: flex;
             align-items: center;
             cursor: pointer;
+            transition: background-color 0.3s;
         }
 
         .dropdown-content label:hover {
@@ -81,6 +163,7 @@
             line-height: 30px;
             font-weight: bold;
             color: white;
+            margin-right: 10px;
         }
 
         .profile-pic {

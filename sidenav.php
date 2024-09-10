@@ -61,6 +61,8 @@ try {
     <nav class="flex-1 px-4 space-y-2">
         <a href="dashboard.php" class="block py-2 px-3 rounded hover:bg-gray-700">Dashboard</a>
         <a href="add_task.php" class="block py-2 px-3 rounded hover:bg-gray-700"> Tasks</a>
+        <a href="my_task.php" class="block py-2 px-3 rounded hover:bg-gray-700">My Tasks</a>
+
         <a href="project.php" class="block py-2 px-3 rounded hover:bg-gray-700">Projects</a>
         <a href="member.php" class="block py-2 px-3 rounded hover:bg-gray-700">Members</a>
 

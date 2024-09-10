@@ -1,46 +1,34 @@
 <?php
 session_start();
-include 'config.php'; // Include the database connection
+include 'config.php'; // Your database connection file
 
-// Check if user is logged in
-if (!isset($_SESSION['user_email'])) {
-    header('Location: login.php');
-    exit;
-}
-
-// Check if the form was submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $member_id = $_POST['member_id'];
-    $member_name = $_POST['member_name'];
-    $member_email = $_POST['member_email'];
-    $member_role = $_POST['member_role'];
-    $member_password = $_POST['member_password']; // Password is optional
+    $id = $_POST['member_id'];
+    $name = $_POST['member_name'];
+    $email = $_POST['member_email'];
+    $role = $_POST['member_role'];
 
-    // Prepare the SQL query
-    if (!empty($member_password)) {
-        // If the user provided a new password, hash it
-        $hashed_password = password_hash($member_password, PASSWORD_DEFAULT);
-        $query = $conn->prepare("UPDATE users SET name = ?, email = ?, role = ?, pass = ? WHERE id = ?");
-        $query->bind_param("ssssi", $member_name, $member_email, $member_role, $hashed_password, $member_id);
+    // Check if the password field is not empty
+    if (!empty($_POST['member_password'])) {
+        // Hash the password using bcrypt
+        $hashed_password = password_hash($_POST['member_password'], PASSWORD_DEFAULT);
+
+        // Update query including password
+        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, pass = ?, role = ? WHERE id = ?");
+        $stmt->bind_param("ssssi", $name, $email, $hashed_password, $role, $id);
     } else {
-        // If no new password is provided, update only the name, email, and role
-        $query = $conn->prepare("UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?");
-        $query->bind_param("sssi", $member_name, $member_email, $member_role, $member_id);
+        // Update query excluding password
+        $stmt = $conn->prepare("UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?");
+        $stmt->bind_param("sssi", $name, $email, $role, $id);
     }
 
     // Execute the query and check for success
-    if ($query->execute()) {
-        // Redirect back to the members list or display a success message
-        $_SESSION['success_message'] = "Member updated successfully!";
-        header('Location: member.php');
-        exit;
+    if ($stmt->execute()) {
+        echo 'Member updated successfully';
     } else {
-        // Handle error
-        $_SESSION['error_message'] = "Error updating member: " . $query->error;
-        header('Location: member.php');
-        exit;
+        echo 'Error updating member: ' . $stmt->error;
     }
 
-    $query->close();
+    $stmt->close();
 }
 ?>
