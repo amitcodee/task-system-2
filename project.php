@@ -71,7 +71,9 @@ $query->close();
                         <!-- Project Color Dot -->
                         <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
                         <!-- Project Name -->
-                        <span class="text-gray-700"><?php echo htmlspecialchars($project['name']); ?></span>
+                        <a href="project_tasks.php?project_id=<?php echo $project['id']; ?>" class="text-blue-600 hover:underline">
+                            <?php echo htmlspecialchars($project['name']); ?>
+                        </a>
                     </div>
                     <div class="flex items-center space-x-2">
                         <!-- Favorite Star -->
