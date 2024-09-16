@@ -56,7 +56,7 @@ try {
 <!-- Sidebar Navigation -->
 <aside class="w-64 bg-gray-800 text-gray-100 flex flex-col">
     <div class="p-4 flex items-center justify-center">
-        <h1 class="text-lg font-semibold">Spack</h1>
+        <h1 class="text-lg font-semibold">Techcadd</h1>
     </div>
     <nav class="flex-1 px-4 space-y-2">
         <a href="dashboard.php" class="block py-2 px-3 rounded hover:bg-gray-700">Dashboard</a>

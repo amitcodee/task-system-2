@@ -71,7 +71,7 @@ $query->close();
                         <!-- Project Color Dot -->
                         <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
                         <!-- Project Name -->
-                        <a href="project_tasks.php?project_id=<?php echo $project['id']; ?>" class="text-blue-600 hover:underline">
+                        <a href="project_tasks.php?project_id=<?php echo $project['id']; ?>" class="text-blue-800 hover:underline text-xl font-bold">
                             <?php echo htmlspecialchars($project['name']); ?>
                         </a>
                     </div>
@@ -97,9 +97,7 @@ $query->close();
                         <form method="POST" action="archive_project.php">
                             <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
                             <button type="submit" class="focus:outline-none">
-                                <svg class="h-6 w-6 text-gray-400 hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 12H2V9a2 2 0 012-2h16a2 2 0 012 2v3h-5v2h4v7H4v-7h4v-2H4zm6 0v2h-4v-2h4z"></path>
-                                </svg>
+                            <i class="fa-solid fa-box-archive fa-lg" style="color: #5b5d62;"></i>
                             </button>
                         </form>
 
@@ -137,9 +135,7 @@ $query->close();
                                         <form method="POST" action="unarchive_project.php">
                                             <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
                                             <button type="submit" class="focus:outline-none">
-                                                <svg class="h-6 w-6 text-gray-400 hover:text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                                                    <path d="M12 12H2V9a2 2 0 012-2h16a2 2 0 012 2v3h-5v2h4v7H4v-7h4v-2H4zm6 0v2h-4v-2h4z"></path>
-                                                </svg>
+                                            <i class="fa-solid fa-boxes-packing fa-lg" style="color: #76797f;"></i>
                                             </button>
                                         </form>
 
@@ -261,6 +257,6 @@ $query->close();
         document.getElementById('activeProjects').classList.add('hidden');
     }
 </script>
-
+<script src="https://kit.fontawesome.com/0fffda5efb.js" crossorigin="anonymous"></script>
 </body>
 </html>
