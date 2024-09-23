@@ -37,22 +37,35 @@ if (empty($assigned_user_id)) {
 
 // Fetch the task details
 $task_query = $conn->prepare("
-    SELECT tasks.name, tasks.description, tasks.due_date, tasks.status, projects.name as project_name
+    SELECT tasks.name, tasks.description, tasks.due_date, tasks.status, tasks.task_priority, tasks.task_category, tasks.reminder_time, tasks.location, tasks.task_link, tasks.file_path, projects.name as project_name
     FROM tasks
     INNER JOIN projects ON tasks.project_list = projects.id
     WHERE tasks.id = ?
 ");
 $task_query->bind_param("i", $task_id);
 $task_query->execute();
-$task_query->bind_result($task_name, $task_description, $due_date, $status, $project_name);
+$task_query->bind_result($task_name, $task_description, $due_date, $status, $task_priority, $task_category, $reminder_time, $location, $link, $file_path, $project_name);
 $task_query->fetch();
 $task_query->close();
+
+// Initialize variables to avoid null issues
+$task_name = $task_name ?? '';
+$task_description = $task_description ?? '';
+$due_date = $due_date ?? '';
+$status = $status ?? '';
+$project_name = $project_name ?? '';
+$task_priority = $task_priority ?? '';
+$task_category = $task_category ?? '';
+$reminder_time = $reminder_time ?? '';
+$location = $location ?? '';
+$task_link = $task_link ?? '';
+$file_path = $file_path ?? '';
 
 // Handle comment/file submission or task completion
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['submit_update'])) {
-        $comment = $_POST['comment'];
-        $output_link = $_POST['output_link'];
+        $comment = $_POST['comment'] ?? '';
+        $output_link = $_POST['output_link'] ?? '';
 
         // Handle file upload
         if (isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] == 0) {
@@ -129,11 +142,20 @@ $response_query->close();
             <div class="container mx-auto p-6">
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4"><?php echo htmlspecialchars($task_name); ?> - Task Details</h2>
-                    <p class="text-gray-600 mb-2"><?php echo htmlspecialchars($task_description); ?></p>
+                    <p class="text-gray-600 mb-2"><?php echo nl2br(htmlspecialchars($task_description)); ?></p>
                     <p class="text-sm text-gray-500">Due Date: <?php echo htmlspecialchars($due_date); ?> | Project: <?php echo htmlspecialchars($project_name); ?></p>
-                    <p class="text-sm text-gray-500">Status: <span class="<?php echo $status === 'Pending' ? 'text-orange-500' : 'text-green-500'; ?>"><?php echo htmlspecialchars($status); ?></span></p>
+                    <p>Priority: <?php echo htmlspecialchars($task_priority); ?></p>
+                    <p class="text-sm text-gray-500">Category: <?php echo htmlspecialchars($task_category); ?></p>
+                    <p class="text-sm text-gray-500">Reminder Time: <?php echo htmlspecialchars($reminder_time); ?></p>
+                    <p class="text-sm text-gray-500">Location: <?php echo htmlspecialchars($location); ?></p>
+                    <?php if (!empty($task_link)): ?>
+                        <p class="text-sm text-gray-500">Task Link: <a href="<?php echo htmlspecialchars($task_link); ?>" class="text-blue-500" target="_blank">View Link</a></p>
+                    <?php endif; ?>
+                    <?php if (!empty($file_path)): ?>
+                        <p class="text-sm text-gray-500">Attached File: <a href="<?php echo htmlspecialchars($file_path); ?>" class="text-blue-500" target="_blank">View File</a></p>
+                    <?php endif; ?>
 
-                    <!-- Add Comment -->
+                    <!-- Add Comment and File Upload -->
                     <form method="POST" action="task_detail.php?task_id=<?php echo $task_id; ?>" enctype="multipart/form-data" class="mt-6">
                         <div class="mb-4">
                             <label for="comment" class="block text-sm font-medium text-gray-700">Add Comment</label>

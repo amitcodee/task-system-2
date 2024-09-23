@@ -55,11 +55,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $description = $_POST['description'];
     $project_list = $_POST['project_list'];
     $due_date = $_POST['due_date'];
+    $task_priority = $_POST['task_priority'];
+    $task_category = $_POST['task_category'] == 'custom' ? $_POST['custom_task_category'] : $_POST['task_category'];
+    $reminder_time = $_POST['reminder_time'];
+    $location = $_POST['location'];
+    $task_link = $_POST['task_link'];
     $assignees = $_POST['assignees'];
+    $file = $_FILES['task_file'];
+
+    // File upload handling
+    $file_path = "";
+    if (!empty($file['name'])) {
+        $file_name = basename($file['name']);
+        $file_path = "uploads/" . $file_name;
+        move_uploaded_file($file['tmp_name'], $file_path);
+    }
 
     // Insert task into the tasks table
-    $task_insert_query = $conn->prepare("INSERT INTO tasks (name, description, project_list, due_date, status) VALUES (?, ?, ?, ?, 'Pending')");
-    $task_insert_query->bind_param("ssis", $task_name, $description, $project_list, $due_date);
+    $task_insert_query = $conn->prepare("INSERT INTO tasks (name, description, project_list, due_date, task_priority, task_category, reminder_time, location, task_link, status, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?)");
+    $task_insert_query->bind_param("ssssssssss", $task_name, $description, $project_list, $due_date, $task_priority, $task_category, $reminder_time, $location, $task_link, $file_path);
     $task_insert_query->execute();
     $task_id = $conn->insert_id; // Get the inserted task ID
     $task_insert_query->close();
@@ -195,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="container mx-auto p-6">
             <div class="bg-white p-6 rounded-lg shadow-lg">
-                <form method="POST" action="add_task.php">
+                <form method="POST" action="add_task.php" enctype="multipart/form-data">
                     <!-- Task Name -->
                     <div class="mb-4">
                         <label for="task_name" class="block text-sm font-medium text-gray-700">Task Name</label>
@@ -224,6 +238,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-4">
                         <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
                         <input type="date" name="due_date" id="due_date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Task Priority -->
+                    <div class="mb-4">
+                        <label for="task_priority" class="block text-sm font-medium text-gray-700">Task Priority</label>
+                        <select name="task_priority" id="task_priority" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+
+                    <!-- Task Category -->
+                    <div class="mb-4">
+                        <label for="task_category" class="block text-sm font-medium text-gray-700">Task Category</label>
+                        <select name="task_category" id="task_category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="toggleCustomCategory(this)">
+                            <option value="Development">Development</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Design">Design</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                        <div id="custom_category_div" class="mt-2 hidden">
+                            <input type="text" name="custom_task_category" id="custom_task_category" placeholder="Enter custom category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                        </div>
+                    </div>
+
+                    <!-- Task Reminder -->
+                    <div class="mb-4">
+                        <label for="reminder_time" class="block text-sm font-medium text-gray-700">Reminder Time</label>
+                        <input type="time" name="reminder_time" id="reminder_time" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Task Location -->
+                    <div class="mb-4">
+                        <label for="location" class="block text-sm font-medium text-gray-700">Task Location</label>
+                        <input type="text" name="location" id="location" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    </div>
+
+                    <!-- Task Link -->
+                    <div class="mb-4">
+                        <label for="task_link" class="block text-sm font-medium text-gray-700">Task Related Link</label>
+                        <input type="url" name="task_link" id="task_link" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="https://example.com">
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label for="task_file" class="block text-sm font-medium text-gray-700">Attach File</label>
+                        <input type="file" name="task_file" id="task_file" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
                     </div>
 
                     <!-- Assignees Selection -->
@@ -267,7 +329,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
-    // Toggle dropdown visibility
+    // Toggle custom category field visibility
+    function toggleCustomCategory(select) {
+        const customCategoryDiv = document.getElementById('custom_category_div');
+        if (select.value === 'custom') {
+            customCategoryDiv.classList.remove('hidden');
+        } else {
+            customCategoryDiv.classList.add('hidden');
+        }
+    }
+
+    // Toggle dropdown visibility for user assignment
     const dropdownBtn = document.getElementById('dropdown-btn');
     const dropdownContent = document.getElementById('dropdown-content');
     const selectedUsersDiv = dropdownBtn;
@@ -298,7 +370,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const userDiv = document.createElement('div');
         userDiv.classList.add('selected-user');
 
-        // Clone the avatar or profile picture
         const avatarClone = avatarElement.cloneNode(true);
         userDiv.appendChild(avatarClone);
 
