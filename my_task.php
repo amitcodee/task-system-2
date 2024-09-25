@@ -16,15 +16,30 @@ $user_query->bind_result($user_id);
 $user_query->fetch();
 $user_query->close();
 
-// Fetch tasks assigned to the logged-in user
-$task_query = $conn->prepare("
+// Fetch the selected status filter from the query string (default to "All")
+$status_filter = $_GET['status'] ?? 'All';
+
+// Fetch tasks assigned to the logged-in user based on the selected status filter
+$query = "
     SELECT t.id, t.name, t.description, t.due_date, t.status, p.name AS project_name
     FROM tasks t
     INNER JOIN task_assignees ta ON t.id = ta.task_id
     INNER JOIN projects p ON t.project_list = p.id
     WHERE ta.user_id = ?
-");
-$task_query->bind_param("i", $user_id);
+";
+
+if ($status_filter !== 'All') {
+    $query .= " AND t.status = ?";
+}
+
+$task_query = $conn->prepare($query);
+
+if ($status_filter === 'All') {
+    $task_query->bind_param("i", $user_id);
+} else {
+    $task_query->bind_param("is", $user_id, $status_filter);
+}
+
 $task_query->execute();
 $task_query->bind_result($task_id, $task_name, $task_description, $due_date, $task_status, $project_name);
 
@@ -68,7 +83,23 @@ $task_query->close();
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-2xl font-semibold mb-4">My Tasks</h2>
 
-                    <!-- Display tasks -->
+                    <!-- Navigation Tabs for Task Status -->
+                    <nav class="flex mb-6">
+                        <a href="?status=All" class="px-4 py-2 text-sm font-medium <?php echo $status_filter === 'All' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            All Tasks
+                        </a>
+                        <a href="?status=Pending" class="px-4 py-2 text-sm font-medium <?php echo $status_filter === 'Pending' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            Pending
+                        </a>
+                        <a href="?status=In Progress" class="px-4 py-2 text-sm font-medium <?php echo $status_filter === 'In Progress' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            In Progress
+                        </a>
+                        <a href="?status=Complete" class="px-4 py-2 text-sm font-medium <?php echo $status_filter === 'Complete' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            Complete
+                        </a>
+                    </nav>
+
+                    <!-- Display tasks based on the selected status -->
                     <?php if (empty($tasks)): ?>
                         <p>No tasks assigned to you.</p>
                     <?php else: ?>
@@ -79,7 +110,7 @@ $task_query->close();
                                         <h3 class="text-xl font-semibold text-gray-800"><?php echo htmlspecialchars($task['name']); ?></h3>
                                         <p class="text-gray-600"><?php echo htmlspecialchars($task['description']); ?></p>
                                         <p class="text-sm text-gray-500">Due Date: <?php echo htmlspecialchars($task['due_date']); ?> | Project: <?php echo htmlspecialchars($task['project_name']); ?></p>
-                                        <p class="text-sm <?php echo $task['status'] === 'Complete' ? 'text-green-500' : 'text-yellow-500'; ?>">
+                                        <p class="text-sm <?php echo $task['status'] === 'Complete' ? 'text-green-500' : ($task['status'] === 'In Progress' ? 'text-yellow-500' : 'text-red-500'); ?>">
                                             Status: <?php echo htmlspecialchars($task['status']); ?>
                                         </p>
                                     </a>

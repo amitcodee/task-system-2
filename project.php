@@ -8,11 +8,45 @@ if (!isset($_SESSION['user_email'])) {
     exit;
 }
 
-// Retrieve projects from the database
-$query = $conn->prepare("SELECT id, name, color, is_favorite, is_archived FROM projects WHERE created_by = ?");
+// Retrieve date filter from URL or default to 'All'
+$date_filter = $_GET['date_filter'] ?? 'All';
+
+// Define date ranges for filtering
+$today = date('Y-m-d');
+$yesterday = date('Y-m-d', strtotime('-1 day'));
+$this_week_start = date('Y-m-d', strtotime('monday this week'));
+$this_month_start = date('Y-m-01');
+
+// Prepare date condition for SQL query
+switch ($date_filter) {
+    case 'Today':
+        $date_condition = "AND p.created_at >= '$today 00:00:00'";
+        break;
+    case 'Yesterday':
+        $date_condition = "AND p.created_at >= '$yesterday 00:00:00' AND p.created_at <= '$yesterday 23:59:59'";
+        break;
+    case 'This Week':
+        $date_condition = "AND p.created_at >= '$this_week_start 00:00:00'";
+        break;
+    case 'This Month':
+        $date_condition = "AND p.created_at >= '$this_month_start 00:00:00'";
+        break;
+    default:
+        $date_condition = ""; // No date filter
+}
+
+// Retrieve projects and task count from the database
+$query = $conn->prepare("
+    SELECT p.id, p.name, p.color, p.is_favorite, p.is_archived, p.created_at, 
+    (SELECT COUNT(*) FROM tasks t WHERE t.project_list = p.id) AS total_tasks,
+    (SELECT COUNT(*) FROM tasks t WHERE t.project_list = p.id AND t.status = 'Complete') AS completed_tasks
+    FROM projects p
+    WHERE p.created_by = ? $date_condition
+    ORDER BY p.is_archived ASC, p.created_at DESC
+");
 $query->bind_param("s", $_SESSION['user_email']);
 $query->execute();
-$query->bind_result($project_id, $project_name, $project_color, $is_favorite, $is_archived);
+$query->bind_result($project_id, $project_name, $project_color, $is_favorite, $is_archived, $created_at, $total_tasks, $completed_tasks);
 $projects = [];
 while ($query->fetch()) {
     $projects[] = [
@@ -20,7 +54,10 @@ while ($query->fetch()) {
         'name' => $project_name,
         'color' => $project_color,
         'is_favorite' => $is_favorite,
-        'is_archived' => $is_archived
+        'is_archived' => $is_archived,
+        'created_at' => $created_at,
+        'total_tasks' => $total_tasks,
+        'completed_tasks' => $completed_tasks
     ];
 }
 $query->close();
@@ -60,63 +97,80 @@ $query->close();
                     </div>
                 </div>
 
+                <!-- Navigation Tabs for Date Filters -->
+                <nav class="flex space-x-4 mb-6">
+                    <a href="?date_filter=All" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'All' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">All</a>
+                    <a href="?date_filter=Today" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'Today' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">Today</a>
+                    <a href="?date_filter=Yesterday" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'Yesterday' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">Yesterday</a>
+                    <a href="?date_filter=This Week" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'This Week' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">This Week</a>
+                    <a href="?date_filter=This Month" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'This Month' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">This Month</a>
+                </nav>
+
                 <!-- Active Projects -->
-               <!-- Active Projects -->
-<div id="activeProjects" class="mt-6 bg-white rounded-lg shadow-md">
-    <ul class="divide-y divide-gray-200">
-        <?php foreach ($projects as $project): ?>
-            <?php if (!$project['is_archived']): // Only show active projects ?>
-                <li class="flex items-center justify-between px-6 py-4">
-                    <div class="flex items-center space-x-2">
-                        <!-- Project Color Dot -->
-                        <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
-                        <!-- Project Name -->
-                        <a href="project_tasks.php?project_id=<?php echo $project['id']; ?>" class="text-blue-800 hover:underline text-xl font-bold">
-                            <?php echo htmlspecialchars($project['name']); ?>
-                        </a>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <!-- Favorite Star -->
-                        <form method="POST" action="toggle_favorite.php">
-                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                            <input type="hidden" name="is_favorite" value="<?php echo $project['is_favorite'] ? '0' : '1'; ?>">
-                            <button type="submit" class="focus:outline-none">
-                                <?php if ($project['is_favorite']): ?>
-                                    <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                                    </svg>
-                                <?php else: ?>
-                                    <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
-                                    </svg>
-                                <?php endif; ?>
-                            </button>
-                        </form>
+                <div id="activeProjects" class="mt-6 bg-white rounded-lg shadow-md">
+                    <ul class="divide-y divide-gray-200">
+                        <?php foreach ($projects as $project): ?>
+                            <?php if (!$project['is_archived']): // Only show active projects ?>
+                                <li class="flex flex-col px-6 py-4">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            <!-- Project Color Dot -->
+                                            <span class="inline-block w-3 h-3 rounded-full" style="background-color: <?php echo htmlspecialchars($project['color']); ?>"></span>
+                                            <!-- Project Name -->
+                                            <a href="project_tasks.php?project_id=<?php echo $project['id']; ?>" class="text-blue-800 hover:underline text-xl font-bold">
+                                                <?php echo htmlspecialchars($project['name']); ?>
+                                            </a>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <!-- Favorite Star -->
+                                            <form method="POST" action="toggle_favorite.php">
+                                                <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                                <input type="hidden" name="is_favorite" value="<?php echo $project['is_favorite'] ? '0' : '1'; ?>">
+                                                <button type="submit" class="focus:outline-none">
+                                                    <?php if ($project['is_favorite']): ?>
+                                                        <svg class="h-6 w-6 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+                                                        </svg>
+                                                    <?php else: ?>
+                                                        <svg class="h-6 w-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"></path>
+                                                        </svg>
+                                                    <?php endif; ?>
+                                                </button>
+                                            </form>
 
-                        <!-- Archive Button -->
-                        <form method="POST" action="archive_project.php">
-                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                            <button type="submit" class="focus:outline-none">
-                            <i class="fa-solid fa-box-archive fa-lg" style="color: #5b5d62;"></i>
-                            </button>
-                        </form>
+                                            <!-- Archive Button -->
+                                            <form method="POST" action="archive_project.php">
+                                                <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                                <button type="submit" class="focus:outline-none">
+                                                <i class="fa-solid fa-box-archive fa-lg" style="color: #5b5d62;"></i>
+                                                </button>
+                                            </form>
 
-                        <!-- Delete Button -->
-                        <form method="POST" action="delete_project.php">
-                            <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
-                            <button type="submit" class="focus:outline-none">
-                                <svg class="h-6 w-6 text-gray-400 hover:text-red-600" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M19 6h-2.5l-1-1h-5l-1 1H5v2h14V6zM7 9v10h10V9H7zM9 11h2v6H9v-6zM13 11h2v6h-2v-6z"></path>
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                </li>
-            <?php endif; ?>
-        <?php endforeach; ?>
-    </ul>
-</div>
-
+                                            <!-- Delete Button -->
+                                            <form method="POST" action="delete_project.php">
+                                                <input type="hidden" name="project_id" value="<?php echo $project['id']; ?>">
+                                                <button type="submit" class="focus:outline-none">
+                                                    <svg class="h-6 w-6 text-gray-400 hover:text-red-600" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M19 6h-2.5l-1-1h-5l-1 1H5v2h14V6zM7 9v10h10V9H7zM9 11h2v6H9v-6zM13 11h2v6h-2v-6z"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Task Completion Progress -->
+                                    <div class="mt-2">
+                                        <span class="text-sm text-gray-500">Tasks: <?php echo $project['completed_tasks']; ?> / <?php echo $project['total_tasks']; ?></span>
+                                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                            <div class="bg-blue-500 h-2.5 rounded-full" style="width: <?php echo ($project['total_tasks'] > 0) ? ($project['completed_tasks'] / $project['total_tasks']) * 100 : 0; ?>%"></div>
+                                        </div>
+                                    </div>
+                                </li>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
 
                 <!-- Archived Projects (Initially Hidden) -->
                 <div id="archivedProjects" class="mt-6 bg-white rounded-lg shadow-md hidden">

@@ -61,11 +61,12 @@ $location = $location ?? '';
 $task_link = $task_link ?? '';
 $file_path = $file_path ?? '';
 
-// Handle comment/file submission or task completion
+// Handle comment/file submission or task status update
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['submit_update'])) {
         $comment = $_POST['comment'] ?? '';
         $output_link = $_POST['output_link'] ?? '';
+        $new_status = $_POST['task_status'] ?? $status; // Get the updated task status from dropdown
 
         // Handle file upload
         if (isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] == 0) {
@@ -85,10 +86,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->execute();
             $stmt->close();
         }
-    } elseif (isset($_POST['complete_task'])) {
-        // Mark task as complete
-        $stmt = $conn->prepare("UPDATE tasks SET status = 'Complete' WHERE id = ?");
-        $stmt->bind_param("i", $task_id);
+
+        // Update task status (Allow status change to any value, even after it's marked complete)
+        $stmt = $conn->prepare("UPDATE tasks SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $new_status, $task_id);
         $stmt->execute();
         $stmt->close();
     }
@@ -127,86 +128,108 @@ $response_query->close();
     <title>Task Details</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
 <div class="flex h-screen">
 
     <!-- Include Sidebar -->
     <?php include 'sidenav.php'; ?>
 
     <div class="flex-1 flex flex-col">
-        
+
         <!-- Include Header -->
         <?php include 'header.php'; ?>
 
-        <main class="flex-1 p-6 bg-gray-100">
-            <div class="container mx-auto p-6">
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-semibold mb-4"><?php echo htmlspecialchars($task_name); ?> - Task Details</h2>
-                    <p class="text-gray-600 mb-2"><?php echo nl2br(htmlspecialchars($task_description)); ?></p>
-                    <p class="text-sm text-gray-500">Due Date: <?php echo htmlspecialchars($due_date); ?> | Project: <?php echo htmlspecialchars($project_name); ?></p>
-                    <p>Priority: <?php echo htmlspecialchars($task_priority); ?></p>
-                    <p class="text-sm text-gray-500">Category: <?php echo htmlspecialchars($task_category); ?></p>
-                    <p class="text-sm text-gray-500">Reminder Time: <?php echo htmlspecialchars($reminder_time); ?></p>
-                    <p class="text-sm text-gray-500">Location: <?php echo htmlspecialchars($location); ?></p>
-                    <?php if (!empty($task_link)): ?>
-                        <p class="text-sm text-gray-500">Task Link: <a href="<?php echo htmlspecialchars($task_link); ?>" class="text-blue-500" target="_blank">View Link</a></p>
-                    <?php endif; ?>
-                    <?php if (!empty($file_path)): ?>
-                        <p class="text-sm text-gray-500">Attached File: <a href="<?php echo htmlspecialchars($file_path); ?>" class="text-blue-500" target="_blank">View File</a></p>
-                    <?php endif; ?>
+        <main class="flex-1 p-6 bg-gray-50">
+            <div class="container mx-auto">
+                <div class="bg-white p-8 rounded-lg shadow-lg">
+                    <!-- Task Title and Project -->
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-3xl font-semibold text-gray-700"><?php echo htmlspecialchars($task_name); ?></h2>
+                    </div>
+                    <p class="text-gray-600 mb-4"><?php echo nl2br(htmlspecialchars($task_description)); ?></p>
+
+                    <!-- Task Meta Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <p class="text-sm text-gray-500"><strong>Due Date:</strong> <?php echo htmlspecialchars($due_date); ?></p>
+                            <p class="text-sm text-gray-500"><strong>Project:</strong> <?php echo htmlspecialchars($project_name); ?></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500"><strong>Priority:</strong> <?php echo htmlspecialchars($task_priority); ?></p>
+                            <p class="text-sm text-gray-500"><strong>Category:</strong> <?php echo htmlspecialchars($task_category); ?></p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500"><strong>Reminder Time:</strong> <?php echo htmlspecialchars($reminder_time); ?></p>
+                            <p class="text-sm text-gray-500"><strong>Location:</strong> <?php echo htmlspecialchars($location); ?></p>
+                        </div>
+                        <div>
+                            <?php if (!empty($task_link)): ?>
+                                <p class="text-sm text-gray-500"><strong>Task Link:</strong> <a href="<?php echo htmlspecialchars($task_link); ?>" class="text-blue-500 hover:underline" target="_blank">View Link</a></p>
+                            <?php endif; ?>
+                            <?php if (!empty($file_path)): ?>
+                                <p class="text-sm text-gray-500"><strong>Attached File:</strong> <a href="<?php echo htmlspecialchars($file_path); ?>" class="text-blue-500 hover:underline" target="_blank">View File</a></p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
 
                     <!-- Add Comment and File Upload -->
                     <form method="POST" action="task_detail.php?task_id=<?php echo $task_id; ?>" enctype="multipart/form-data" class="mt-6">
                         <div class="mb-4">
                             <label for="comment" class="block text-sm font-medium text-gray-700">Add Comment</label>
-                            <textarea name="comment" id="comment" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
+                            <textarea name="comment" id="comment" rows="3" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
                         </div>
 
                         <div class="mb-4">
                             <label for="output_link" class="block text-sm font-medium text-gray-700">Output Link (Optional)</label>
-                            <input type="url" name="output_link" id="output_link" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                            <input type="url" name="output_link" id="output_link" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
                         </div>
 
                         <div class="mb-4">
                             <label for="file_upload" class="block text-sm font-medium text-gray-700">Upload File (Optional)</label>
-                            <input type="file" name="file_upload" id="file_upload" class="mt-1 block w-full">
+                            <input type="file" name="file_upload" id="file_upload" class="mt-1 block w-full p-3">
                         </div>
 
-                        <div class="flex justify-end space-x-2">
-                            <button type="submit" name="submit_update" class="bg-blue-500 text-white px-4 py-2 rounded-md">Submit Update</button>
-                            <?php if ($status === 'Pending'): ?>
-                                <button type="submit" name="complete_task" class="bg-green-500 text-white px-4 py-2 rounded-md">Complete Task</button>
-                            <?php endif; ?>
+                        <div class="mb-4">
+                            <label for="task_status" class="block text-sm font-medium text-gray-700">Task Status</label>
+                            <select name="task_status" id="task_status" class="block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                <option value="Pending" <?php echo $status == 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="In Progress" <?php echo $status == 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
+                                <option value="Complete" <?php echo $status == 'Complete' ? 'selected' : ''; ?>>Complete</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end space-x-3">
+                            <button type="submit" name="submit_update" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition">
+                                Submit Update
+                            </button>
                         </div>
                     </form>
 
-                    <!-- Show Task Updates -->
+                    <!-- Task Updates Section -->
                     <h3 class="text-lg font-semibold mt-6">Updates</h3>
                     <?php if (empty($responses)): ?>
                         <p class="text-gray-500">No updates available.</p>
                     <?php else: ?>
                         <ul class="divide-y divide-gray-200 mt-4">
                             <?php foreach ($responses as $response): ?>
-                                <li class="py-4">
-                                    <div class="flex items-start space-x-3">
-                                        <?php if ($response['profile_image']): ?>
-                                            <img src="<?php echo htmlspecialchars($response['profile_image']); ?>" alt="<?php echo htmlspecialchars($response['username']); ?>" class="w-10 h-10 rounded-full">
-                                        <?php else: ?>
-                                            <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
-                                                <span class="text-white text-sm"><?php echo strtoupper($response['username'][0]); ?></span>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium"><?php echo htmlspecialchars($response['username']); ?></p>
-                                            <p class="text-gray-600"><?php echo htmlspecialchars($response['comment']); ?></p>
-                                            <?php if ($response['file_path']): ?>
-                                                <p><a href="<?php echo htmlspecialchars($response['file_path']); ?>" class="text-blue-500" target="_blank">View File</a></p>
-                                            <?php endif; ?>
-                                            <?php if ($response['output_link']): ?>
-                                                <p><a href="<?php echo htmlspecialchars($response['output_link']); ?>" class="text-blue-500" target="_blank">View Link</a></p>
-                                            <?php endif; ?>
-                                            <p class="text-xs text-gray-400"><?php echo htmlspecialchars($response['created_at']); ?></p>
+                                <li class="py-4 flex items-start space-x-4">
+                                    <?php if ($response['profile_image']): ?>
+                                        <img src="<?php echo htmlspecialchars($response['profile_image']); ?>" alt="<?php echo htmlspecialchars($response['username']); ?>" class="w-10 h-10 rounded-full">
+                                    <?php else: ?>
+                                        <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                            <span class="text-white text-sm"><?php echo strtoupper($response['username'][0]); ?></span>
                                         </div>
+                                    <?php endif; ?>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-gray-700"><?php echo htmlspecialchars($response['username']); ?></p>
+                                        <p class="text-gray-600"><?php echo htmlspecialchars($response['comment']); ?></p>
+                                        <?php if ($response['file_path']): ?>
+                                            <p><a href="<?php echo htmlspecialchars($response['file_path']); ?>" class="text-blue-500 hover:underline" target="_blank">View File</a></p>
+                                        <?php endif; ?>
+                                        <?php if ($response['output_link']): ?>
+                                            <p><a href="<?php echo htmlspecialchars($response['output_link']); ?>" class="text-blue-500 hover:underline" target="_blank">View Link</a></p>
+                                        <?php endif; ?>
+                                        <p class="text-xs text-gray-400"><?php echo htmlspecialchars($response['created_at']); ?></p>
                                     </div>
                                 </li>
                             <?php endforeach; ?>
