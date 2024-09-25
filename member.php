@@ -41,6 +41,10 @@ $query->close();
     <title>Team Members</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        /* Make modals hidden by default */
+        .hidden { display: none; }
+    </style>
 </head>
 <body class="bg-gray-100">
 <div class="flex h-screen">
@@ -247,23 +251,24 @@ $query->close();
     });
 
     function deleteMember(memberId) {
-    if (confirm('Are you sure you want to delete this member?')) {
-        $.ajax({
-            type: 'POST',
-            url: 'delete_member.php',
-            data: { id: memberId },
-            success: function(response) {
-                alert(response); // Show response message
-                if (response.trim() === "Member deleted successfully") {
-                    $('#member_' + memberId).remove(); // Remove the row from the table
+        if (confirm('Are you sure you want to delete this member?')) {
+            $.ajax({
+                type: 'POST',
+                url: 'member.php', // Same file for handling the request
+                data: { id: memberId, action: 'delete' }, // Pass 'action' to handle deletion
+                success: function(response) {
+                    const res = JSON.parse(response);
+                    alert(res.message); // Show response message
+                    if (res.status === 'success') {
+                        $('#member_' + memberId).remove(); // Remove the row from the table
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error: ' + error); // In case there's an issue with the request
                 }
-            },
-            error: function(xhr, status, error) {
-                alert('Error: ' + error); // In case there's an issue with the request
-            }
-        });
+            });
+        }
     }
-}
 </script>
 
 </body>

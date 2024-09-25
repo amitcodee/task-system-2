@@ -23,24 +23,37 @@ if ($logged_in_user_role !== 'Admin') {
 }
 
 // Check if the member ID is provided via POST
-if (isset($_POST['id'])) {
-    $member_id = $_POST['id'];
+if (isset($_POST['id']) && !empty($_POST['id'])) {
+    $member_id = (int)$_POST['id']; // Cast to int for safety
 
-    // Prepare the delete query
-    $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
-    $stmt->bind_param("i", $member_id);
+    // Debugging: Log the member ID
+    echo "Received member ID: " . $member_id;
 
-    // Execute the query and check if successful
-    if ($stmt->execute()) {
-        echo "Member deleted successfully";
+    // Check if the member exists before deleting
+    $check_member = $conn->prepare("SELECT id FROM users WHERE id = ?");
+    $check_member->bind_param("i", $member_id);
+    $check_member->execute();
+    $check_member->store_result();
+
+    if ($check_member->num_rows > 0) {
+        // Member exists, proceed with deletion
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->bind_param("i", $member_id);
+
+        if ($stmt->execute()) {
+            echo "Member deleted successfully";
+        } else {
+            echo "Error deleting member: " . $stmt->error;
+        }
+
+        $stmt->close();
     } else {
-        echo "Error deleting member: " . $stmt->error;
+        echo "Member not found.";
     }
 
-    $stmt->close();
+    $check_member->close();
 } else {
     echo "No member ID provided.";
 }
 
 $conn->close();
-?>

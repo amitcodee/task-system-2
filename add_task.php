@@ -94,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -197,198 +198,203 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body class="bg-gray-100">
 
-<div class="flex h-screen">
-    <!-- Include Sidenav -->
-    <?php include 'sidenav.php'; ?>
+    <div class="flex h-screen">
+        <!-- Include Sidenav -->
+        <?php include 'sidenav.php'; ?>
 
-    <div class="flex-1 flex flex-col">
-        <!-- Include Header -->
-        <?php include 'header.php'; ?>
+        <div class="flex-1 flex flex-col">
+            <!-- Include Header -->
+            <?php include 'header.php'; ?>
 
-        <div class="container mx-auto p-6 ">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <form method="POST" action="add_task.php" enctype="multipart/form-data">
-                    <!-- Task Name -->
-                    <div class="mb-4">
-                        <label for="task_name" class="block text-sm font-medium text-gray-700">Task Name</label>
-                        <input type="text" name="task_name" id="task_name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="mb-4">
-                        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea name="description" id="description" rows="3" class="mt-1 block w-full p-2 border border-gray-300 rounded-md"></textarea>
-                    </div>
-
-                    <!-- Project List -->
-                    <div class="mb-4">
-                        <label for="project_list" class="block text-sm font-medium text-gray-700">Project List</label>
-                        <select name="project_list" id="project_list" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
-                            <?php foreach ($projects as $project): ?>
-                                <option value="<?php echo htmlspecialchars($project['id']); ?>">
-                                    <?php echo htmlspecialchars($project['name']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-
-                    <!-- Due Date -->
-                    <div class="mb-4">
-                        <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
-                        <input type="date" name="due_date" id="due_date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-
-                    <!-- Task Priority -->
-                    <div class="mb-4">
-                        <label for="task_priority" class="block text-sm font-medium text-gray-700">Task Priority</label>
-                        <select name="task_priority" id="task_priority" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                        </select>
-                    </div>
-
-                    <!-- Task Category -->
-                    <div class="mb-4">
-                        <label for="task_category" class="block text-sm font-medium text-gray-700">Task Category</label>
-                        <select name="task_category" id="task_category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" onchange="toggleCustomCategory(this)">
-                            <option value="Development">Development</option>
-                            <option value="Marketing">Marketing</option>
-                            <option value="Design">Design</option>
-                            <option value="custom">Custom</option>
-                        </select>
-                        <div id="custom_category_div" class="mt-2 hidden">
-                            <input type="text" name="custom_task_category" id="custom_task_category" placeholder="Enter custom category" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                        </div>
-                    </div>
-
-                    <!-- Task Reminder -->
-                    <div class="mb-4">
-                        <label for="reminder_time" class="block text-sm font-medium text-gray-700">Reminder Time</label>
-                        <input type="time" name="reminder_time" id="reminder_time" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-
-                    <!-- Task Location -->
-                    <div class="mb-4">
-                        <label for="location" class="block text-sm font-medium text-gray-700">Task Location</label>
-                        <input type="text" name="location" id="location" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-
-                    <!-- Task Link -->
-                    <div class="mb-4">
-                        <label for="task_link" class="block text-sm font-medium text-gray-700">Task Related Link</label>
-                        <input type="url" name="task_link" id="task_link" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" placeholder="https://example.com">
-                    </div>
-
-                    <!-- File Upload -->
-                    <div class="mb-4">
-                        <label for="task_file" class="block text-sm font-medium text-gray-700">Attach File</label>
-                        <input type="file" name="task_file" id="task_file" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
-                    </div>
-
-                    <!-- Assignees Selection -->
-                    <div class="mb-4">
-                        <label for="assignees" class="block text-sm font-medium text-gray-700">Assign Users</label>
-                        <div class="custom-dropdown">
-                            <div id="dropdown-btn" class="dropdown-btn">
-                                <span>Select Users</span>
+            <div class="container mx-auto p-6 ">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <form method="POST" action="add_task.php" enctype="multipart/form-data">
+                        <div class="flex flex-wrap -mx-4">
+                            <!-- Task Name -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="task_name" class="block text-sm font-medium text-gray-700">Task Name</label>
+                                <input type="text" name="task_name" id="task_name" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
                             </div>
-                            <div id="dropdown-content" class="dropdown-content">
-                                <?php foreach ($users as $user): ?>
-                                    <label>
-                                        <!-- Check if profile pic is available, otherwise show initials -->
-                                        <?php if ($user['profile_image']): ?>
-                                            <img src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="<?php echo htmlspecialchars($user['name']); ?>" class="profile-pic">
-                                        <?php else: ?>
-                                            <div class="avatar">
-                                                <?php
-                                                    $nameParts = explode(' ', $user['name']);
-                                                    $initials = strtoupper($nameParts[0][0]) . (isset($nameParts[1]) ? strtoupper($nameParts[1][0]) : '');
-                                                    echo $initials;
-                                                ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        <input type="checkbox" name="assignees[]" value="<?php echo htmlspecialchars($user['id']); ?>" class="check" />
-                                        <?php echo htmlspecialchars($user['name']); ?>
-                                    </label>
-                                <?php endforeach; ?>
+
+                            <!-- Due Date -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="due_date" class="block text-sm font-medium text-gray-700">Due Date</label>
+                                <input type="date" name="due_date" id="due_date" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Description -->
+                            <div class="w-full px-4 mb-4">
+                                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                                <textarea name="description" id="description" rows="3" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"></textarea>
+                            </div>
+
+                            <!-- Project List -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="project_list" class="block text-sm font-medium text-gray-700">Project List</label>
+                                <select name="project_list" id="project_list" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" required>
+                                    <?php foreach ($projects as $project): ?>
+                                        <option value="<?php echo htmlspecialchars($project['id']); ?>">
+                                            <?php echo htmlspecialchars($project['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <!-- Task Priority -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="task_priority" class="block text-sm font-medium text-gray-700">Task Priority</label>
+                                <select name="task_priority" id="task_priority" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+
+                            <!-- Task Category -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="task_category" class="block text-sm font-medium text-gray-700">Task Category</label>
+                                <select name="task_category" id="task_category" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" onchange="toggleCustomCategory(this)">
+                                    <option value="Development">Development</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Design">Design</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                                <div id="custom_category_div" class="mt-2 hidden">
+                                    <input type="text" name="custom_task_category" id="custom_task_category" placeholder="Enter custom category" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+
+                            <!-- Task Reminder -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="reminder_time" class="block text-sm font-medium text-gray-700">Reminder Time</label>
+                                <input type="time" name="reminder_time" id="reminder_time" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Task Location -->
+                            <div class="w-full  px-4 mb-4">
+                                <label for="location" class="block text-sm font-medium text-gray-700">Task Location</label>
+                                <input type="text" name="location" id="location" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Task Link -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="task_link" class="block text-sm font-medium text-gray-700">Task Related Link</label>
+                                <input type="url" name="task_link" id="task_link" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" placeholder="https://example.com">
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="w-full lg:w-1/2 px-4 mb-4">
+                                <label for="task_file" class="block text-sm font-medium text-gray-700">Attach File</label>
+                                <input type="file" name="task_file" id="task_file" class="mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+
+                            <!-- Assignees Selection -->
+                            <div class="w-full px-4 mb-4">
+                                <label for="assignees" class="block text-sm font-medium text-gray-700">Assign Users</label>
+                                <div class="custom-dropdown">
+                                    <div id="dropdown-btn" class="dropdown-btn">
+                                        <span>Select Users</span>
+                                    </div>
+                                    <div id="dropdown-content" class="dropdown-content">
+                                        <?php foreach ($users as $user): ?>
+                                            <label>
+                                                <!-- Check if profile pic is available, otherwise show initials -->
+                                                <?php if ($user['profile_image']): ?>
+                                                    <img src="<?php echo htmlspecialchars($user['profile_image']); ?>" alt="<?php echo htmlspecialchars($user['name']); ?>" class="profile-pic">
+                                                <?php else: ?>
+                                                    <div class="avatar">
+                                                        <?php
+                                                        $nameParts = explode(' ', $user['name']);
+                                                        $initials = strtoupper($nameParts[0][0]) . (isset($nameParts[1]) ? strtoupper($nameParts[1][0]) : '');
+                                                        echo $initials;
+                                                        ?>
+                                                    </div>
+                                                <?php endif; ?>
+                                                <input type="checkbox" name="assignees[]" value="<?php echo htmlspecialchars($user['id']); ?>" class="check" />
+                                                <?php echo htmlspecialchars($user['name']); ?>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="w-full px-4 mb-4 flex justify-end">
+                                <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-md shadow hover:bg-blue-600 transition duration-300">Add Task</button>
                             </div>
                         </div>
-                    </div>
+                    </form>
 
-                    <!-- Submit Button -->
-                    <div class="flex justify-end">
-                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md">Add Task</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Toggle custom category field visibility
-    function toggleCustomCategory(select) {
-        const customCategoryDiv = document.getElementById('custom_category_div');
-        if (select.value === 'custom') {
-            customCategoryDiv.classList.remove('hidden');
-        } else {
-            customCategoryDiv.classList.add('hidden');
-        }
-    }
-
-    // Toggle dropdown visibility for user assignment
-    const dropdownBtn = document.getElementById('dropdown-btn');
-    const dropdownContent = document.getElementById('dropdown-content');
-    const selectedUsersDiv = dropdownBtn;
-
-    dropdownBtn.addEventListener('click', () => {
-        dropdownContent.classList.toggle('show');
-    });
-
-    // Update selected users display
-    const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const label = this.parentElement;
-            const avatar = label.querySelector('.avatar') || label.querySelector('.profile-pic');
-            const userName = label.textContent.trim();
-
-            if (this.checked) {
-                label.classList.add('active');
-                addSelectedUser(userName, avatar);
+    <script>
+        // Toggle custom category field visibility
+        function toggleCustomCategory(select) {
+            const customCategoryDiv = document.getElementById('custom_category_div');
+            if (select.value === 'custom') {
+                customCategoryDiv.classList.remove('hidden');
             } else {
-                label.classList.remove('active');
-                removeSelectedUser(userName);
+                customCategoryDiv.classList.add('hidden');
             }
+        }
+
+        // Toggle dropdown visibility for user assignment
+        const dropdownBtn = document.getElementById('dropdown-btn');
+        const dropdownContent = document.getElementById('dropdown-content');
+        const selectedUsersDiv = dropdownBtn;
+
+        dropdownBtn.addEventListener('click', () => {
+            dropdownContent.classList.toggle('show');
         });
-    });
 
-    function addSelectedUser(name, avatarElement) {
-        const userDiv = document.createElement('div');
-        userDiv.classList.add('selected-user');
+        // Update selected users display
+        const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const label = this.parentElement;
+                const avatar = label.querySelector('.avatar') || label.querySelector('.profile-pic');
+                const userName = label.textContent.trim();
 
-        const avatarClone = avatarElement.cloneNode(true);
-        userDiv.appendChild(avatarClone);
-
-        const nameSpan = document.createElement('span');
-        nameSpan.textContent = name;
-        userDiv.appendChild(nameSpan);
-
-        selectedUsersDiv.appendChild(userDiv);
-    }
-
-    function removeSelectedUser(name) {
-        const selectedUserDivs = selectedUsersDiv.querySelectorAll('.selected-user');
-        selectedUserDivs.forEach(div => {
-            if (div.textContent.includes(name)) {
-                selectedUsersDiv.removeChild(div);
-            }
+                if (this.checked) {
+                    label.classList.add('active');
+                    addSelectedUser(userName, avatar);
+                } else {
+                    label.classList.remove('active');
+                    removeSelectedUser(userName);
+                }
+            });
         });
-    }
-</script>
+
+        function addSelectedUser(name, avatarElement) {
+            const userDiv = document.createElement('div');
+            userDiv.classList.add('selected-user');
+
+            const avatarClone = avatarElement.cloneNode(true);
+            userDiv.appendChild(avatarClone);
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            userDiv.appendChild(nameSpan);
+
+            selectedUsersDiv.appendChild(userDiv);
+        }
+
+        function removeSelectedUser(name) {
+            const selectedUserDivs = selectedUsersDiv.querySelectorAll('.selected-user');
+            selectedUserDivs.forEach(div => {
+                if (div.textContent.includes(name)) {
+                    selectedUsersDiv.removeChild(div);
+                }
+            });
+        }
+    </script>
 
 </body>
+
 </html>

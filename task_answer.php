@@ -128,13 +128,22 @@ if (!empty($task_updates)) {
     <style>
         /* Custom styles for navigation tabs */
         .nav-tab {
-            @apply cursor-pointer px-4 py-2;
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            font-size: 1rem;
+            border-radius: 0.5rem;
         }
         .nav-tab-active {
-            @apply text-blue-600 border-b-2 border-blue-600 font-semibold;
+            color: #3B82F6; /* Blue */
+            font-weight: 600;
+            background-color: rgba(59, 130, 246, 0.1);
         }
         .nav-tab-inactive {
-            @apply text-gray-500 hover:text-blue-600;
+            color: #6B7280; /* Gray */
+        }
+        .nav-tab-inactive:hover {
+            color: #3B82F6; /* Blue hover */
         }
     </style>
 </head>
@@ -148,32 +157,32 @@ if (!empty($task_updates)) {
         <?php include 'header.php'; ?>
 
         <div class="flex flex-1 overflow-hidden">
-            <!-- Side Filter -->
-            <div class="w-1/4 bg-white p-6 shadow-lg">
-                <h3 class="text-xl font-semibold mb-4 text-gray-700">Task Status Filter</h3>
-                <form action="task_answer.php" method="GET">
-                    <!-- Status Dropdown Filter (Exclude 'Pending') -->
-                    <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Task Status</label>
-                    <select id="status" name="status" class="block w-full p-3 mb-4 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                        <option value="All" <?php echo $status_filter === 'All' ? 'selected' : ''; ?>>All</option>
-                        <option value="In Progress" <?php echo $status_filter === 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
-                        <option value="Complete" <?php echo $status_filter === 'Complete' ? 'selected' : ''; ?>>Complete</option>
-                    </select>
+            <!-- Side Filter as a Card -->
+            <div class="w-1/4 p-6">
+                <div class="bg-white p-6 shadow-lg rounded-lg">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-700">Task Status Filter</h3>
+                    <form action="task_answer.php" method="GET">
+                        <!-- Status Dropdown Filter -->
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Task Status</label>
+                        <select id="status" name="status" class="block w-full p-3 mb-4 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <option value="All" <?php echo $status_filter === 'All' ? 'selected' : ''; ?>>All</option>
+                            <option value="In Progress" <?php echo $status_filter === 'In Progress' ? 'selected' : ''; ?>>In Progress</option>
+                            <option value="Complete" <?php echo $status_filter === 'Complete' ? 'selected' : ''; ?>>Complete</option>
+                        </select>
 
-                    <!-- Date Filter Passed through URL -->
-                    <input type="hidden" name="filter" value="<?php echo htmlspecialchars($date_filter); ?>" />
+                        <!-- Date Filter Hidden Input -->
+                        <input type="hidden" name="filter" value="<?php echo htmlspecialchars($date_filter); ?>" />
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition">Apply Filter</button>
-                </form>
+                        <!-- Submit Button -->
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 w-full rounded-md transition">Apply Filter</button>
+                    </form>
+                </div>
             </div>
 
             <!-- Main Content Area -->
             <main class="flex-1 p-6 overflow-y-auto">
                 <div class="container mx-auto">
                     <div class="bg-white p-6 rounded-lg shadow-lg">
-                        <h2 class="text-2xl font-semibold mb-4 text-gray-700">Task Updates</h2>
-
                         <!-- Navigation Tabs for Date Filters -->
                         <nav class="flex space-x-4 mb-6">
                             <a href="?filter=All&status=<?php echo htmlspecialchars($status_filter); ?>" 
@@ -198,7 +207,7 @@ if (!empty($task_updates)) {
                             </a>
                         </nav>
 
-                        <!-- Display task updates based on the selected date and status filters -->
+                        <!-- Task Updates Section -->
                         <?php if (empty($task_updates)): ?>
                             <p class="text-gray-500">No task updates found.</p>
                         <?php else: ?>
@@ -234,3 +243,4 @@ if (!empty($task_updates)) {
 
 </body>
 </html>
+
