@@ -115,14 +115,20 @@ try {
                     <i class="fas fa-tachometer-alt"></i>
                     <span class="ml-3 sidebar-text">Dashboard</span>
                 </a>
+                <?php if ($is_authorized): ?>
                 <a href="add_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                     <i class="fas fa-tasks"></i>
                     <span class="ml-3 sidebar-text">Tasks</span>
                 </a>
+                <?php endif; ?>
                 <a href="my_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                     <i class="fas fa-user"></i>
                     <span class="ml-3 sidebar-text">My Tasks</span>
                 </a>
+               
+
+                <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
+                <?php if ($is_authorized): ?>
                 <a href="project.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                     <i class="fas fa-folder"></i>
                     <span class="ml-3 sidebar-text">Projects</span>
@@ -131,9 +137,6 @@ try {
                     <i class="fas fa-users"></i>
                     <span class="ml-3 sidebar-text">Members</span>
                 </a>
-
-                <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
-                <?php if ($is_authorized): ?>
                     <a href="task_answer.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                         <i class="fas fa-comments"></i>
                         <span class="ml-3 sidebar-text">View Answers</span>
