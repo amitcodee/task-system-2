@@ -17,7 +17,43 @@ $query_role->bind_result($logged_in_user_role);
 $query_role->fetch();
 $query_role->close();
 
-// Retrieve all users
+// Handle member deletion if a POST request is made for deletion
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
+    $member_id = (int)$_POST['id']; // Cast to int for safety
+
+    // Only allow admins to delete members
+    if ($logged_in_user_role !== 'Admin') {
+        echo json_encode(['status' => 'error', 'message' => 'Unauthorized access']);
+        exit;
+    }
+
+    // Check if the member exists before deleting
+    $check_member = $conn->prepare("SELECT id FROM users WHERE id = ?");
+    $check_member->bind_param("i", $member_id);
+    $check_member->execute();
+    $check_member->store_result();
+
+    if ($check_member->num_rows > 0) {
+        // Member exists, proceed with deletion
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->bind_param("i", $member_id);
+
+        if ($stmt->execute()) {
+            echo json_encode(['status' => 'success', 'message' => 'Member deleted successfully']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Error deleting member: ' . $stmt->error]);
+        }
+
+        $stmt->close();
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Member not found.']);
+    }
+
+    $check_member->close();
+    exit;
+}
+
+// Retrieve all users for displaying the members list
 $query = $conn->prepare("SELECT id, name, email, role FROM users");
 $query->execute();
 $query->bind_result($id, $name, $email, $role);
@@ -251,24 +287,25 @@ $query->close();
     });
 
     function deleteMember(memberId) {
-        if (confirm('Are you sure you want to delete this member?')) {
-            $.ajax({
-                type: 'POST',
-                url: 'member.php', // Same file for handling the request
-                data: { id: memberId, action: 'delete' }, // Pass 'action' to handle deletion
-                success: function(response) {
-                    const res = JSON.parse(response);
-                    alert(res.message); // Show response message
-                    if (res.status === 'success') {
-                        $('#member_' + memberId).remove(); // Remove the row from the table
-                    }
-                },
-                error: function(xhr, status, error) {
-                    alert('Error: ' + error); // In case there's an issue with the request
+    if (confirm('Are you sure you want to delete this member?')) {
+        $.ajax({
+            type: 'POST',
+            url: 'member.php', // Send the request to the same file
+            data: { id: memberId, action: 'delete' }, // Pass 'id' and 'action' to handle deletion
+            success: function(response) {
+                const res = JSON.parse(response);
+                alert(res.message); // Show the response message
+                if (res.status === 'success') {
+                    $('#member_' + memberId).remove(); // Remove the member row from the table
                 }
-            });
-        }
+            },
+            error: function(xhr, status, error) {
+                alert('Error: ' + error); // In case of any issues
+            }
+        });
     }
+}
+
 </script>
 
 </body>
