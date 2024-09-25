@@ -1,10 +1,34 @@
 <?php
-session_start();
-include 'config.php'; // Include your database connection
+// Enable error reporting to catch issues
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-// Check if user is logged in and is an admin
-if (!isset($_SESSION['user_email']) ) {
+// Start the session if it's not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Include the database connection file
+include 'config.php'; 
+
+// Check if user is logged in
+if (!isset($_SESSION['user_email'])) {
     header('Location: login.php');
+    exit;
+}
+
+// Define a list of authorized admin emails
+$admin_emails = ['admin@example.com', 'manager@example.com']; // Add more admin emails as needed
+
+// Check if the logged-in user is an admin
+if (!in_array($_SESSION['user_email'], $admin_emails)) {
+    echo "<div class='flex items-center justify-center h-screen bg-gray-100'>
+            <div class='bg-white p-8 rounded-lg shadow-lg text-center'>
+                <h1 class='text-2xl font-bold text-red-600 mb-4'>Access Denied</h1>
+                <p class='text-gray-700 mb-6'>You do not have permission to access this page.</p>
+                <a href='dashboard.php' class='bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600'>Go to Dashboard</a>
+            </div>
+          </div>";
     exit;
 }
 
@@ -69,7 +93,7 @@ while ($row = $result->fetch_assoc()) {
 // Only fetch assigned users if there are tasks
 if (!empty($task_updates)) {
     // Fetch all assigned users for the tasks
-    $task_ids = implode(',', array_column($task_updates, 'task_id'));
+    $task_ids = implode(',', array_map('intval', array_column($task_updates, 'task_id'))); // Ensure task_ids are integers
     
     if (!empty($task_ids)) {
         $assigned_users_query = "
@@ -101,19 +125,29 @@ if (!empty($task_updates)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Updates</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for navigation tabs */
+        .nav-tab {
+            @apply cursor-pointer px-4 py-2;
+        }
+        .nav-tab-active {
+            @apply text-blue-600 border-b-2 border-blue-600 font-semibold;
+        }
+        .nav-tab-inactive {
+            @apply text-gray-500 hover:text-blue-600;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
 <div class="flex h-screen">
-
     <!-- Include Sidebar -->
     <?php include 'sidenav.php'; ?>
 
     <div class="flex-1 flex flex-col">
-
         <!-- Include Header -->
         <?php include 'header.php'; ?>
 
-        <div class="flex flex-1">
+        <div class="flex flex-1 overflow-hidden">
             <!-- Side Filter -->
             <div class="w-1/4 bg-white p-6 shadow-lg">
                 <h3 class="text-xl font-semibold mb-4 text-gray-700">Task Status Filter</h3>
@@ -135,26 +169,31 @@ if (!empty($task_updates)) {
             </div>
 
             <!-- Main Content Area -->
-            <main class="flex-1 p-6 bg-gray-100">
-                <div class="container mx-auto p-6">
+            <main class="flex-1 p-6 overflow-y-auto">
+                <div class="container mx-auto">
                     <div class="bg-white p-6 rounded-lg shadow-lg">
                         <h2 class="text-2xl font-semibold mb-4 text-gray-700">Task Updates</h2>
 
                         <!-- Navigation Tabs for Date Filters -->
-                        <nav class="flex mb-6">
-                            <a href="?filter=All&status=<?php echo htmlspecialchars($status_filter); ?>" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'All' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                        <nav class="flex space-x-4 mb-6">
+                            <a href="?filter=All&status=<?php echo htmlspecialchars($status_filter); ?>" 
+                               class="nav-tab <?php echo $date_filter === 'All' ? 'nav-tab-active' : 'nav-tab-inactive'; ?>">
                                 All
                             </a>
-                            <a href="?filter=Today&status=<?php echo htmlspecialchars($status_filter); ?>" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'Today' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            <a href="?filter=Today&status=<?php echo htmlspecialchars($status_filter); ?>" 
+                               class="nav-tab <?php echo $date_filter === 'Today' ? 'nav-tab-active' : 'nav-tab-inactive'; ?>">
                                 Today
                             </a>
-                            <a href="?filter=Yesterday&status=<?php echo htmlspecialchars($status_filter); ?>" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'Yesterday' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            <a href="?filter=Yesterday&status=<?php echo htmlspecialchars($status_filter); ?>" 
+                               class="nav-tab <?php echo $date_filter === 'Yesterday' ? 'nav-tab-active' : 'nav-tab-inactive'; ?>">
                                 Yesterday
                             </a>
-                            <a href="?filter=This Week&status=<?php echo htmlspecialchars($status_filter); ?>" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'This Week' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            <a href="?filter=This Week&status=<?php echo htmlspecialchars($status_filter); ?>" 
+                               class="nav-tab <?php echo $date_filter === 'This Week' ? 'nav-tab-active' : 'nav-tab-inactive'; ?>">
                                 This Week
                             </a>
-                            <a href="?filter=This Month&status=<?php echo htmlspecialchars($status_filter); ?>" class="px-4 py-2 text-sm font-medium <?php echo $date_filter === 'This Month' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500'; ?>">
+                            <a href="?filter=This Month&status=<?php echo htmlspecialchars($status_filter); ?>" 
+                               class="nav-tab <?php echo $date_filter === 'This Month' ? 'nav-tab-active' : 'nav-tab-inactive'; ?>">
                                 This Month
                             </a>
                         </nav>
@@ -166,21 +205,21 @@ if (!empty($task_updates)) {
                             <ul class="divide-y divide-gray-200">
                                 <?php foreach ($task_updates as $update): ?>
                                     <li class="py-4">
-                                        <a href="view_answer.php?task_id=<?php echo $update['task_id']; ?>" class="block hover:bg-gray-50 p-4 rounded-md transition">
+                                        <a href="view_answer.php?task_id=<?php echo htmlspecialchars($update['task_id']); ?>" class="block hover:bg-gray-50 p-4 rounded-md transition">
                                             <h3 class="text-xl font-semibold text-gray-800"><?php echo htmlspecialchars($update['task_name']); ?></h3>
                                             <p class="text-sm text-gray-500">Latest update by: <?php echo htmlspecialchars($update['user_name']); ?> | Project: <?php echo htmlspecialchars($update['project_name']); ?></p>
 
                                             <!-- Display all assigned users -->
                                             <p class="text-sm text-gray-500">Assigned to: 
                                                 <?php if (!empty($assigned_users[$update['task_id']])): ?>
-                                                    <?php echo implode(', ', $assigned_users[$update['task_id']]); ?>
+                                                    <?php echo htmlspecialchars(implode(', ', $assigned_users[$update['task_id']])); ?>
                                                 <?php else: ?>
                                                     No users assigned
                                                 <?php endif; ?>
                                             </p>
 
                                             <p class="text-sm text-gray-500">Date: <?php echo htmlspecialchars($update['latest_update']); ?></p>
-                                            <p class="text-gray-600"><?php echo htmlspecialchars($update['comment']); ?></p>
+                                            <p class="text-gray-600 mt-2"><?php echo htmlspecialchars($update['comment']); ?></p>
                                         </a>
                                     </li>
                                 <?php endforeach; ?>

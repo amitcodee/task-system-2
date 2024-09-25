@@ -18,6 +18,12 @@ if (!isset($_SESSION['user_email'])) {
     exit;
 }
 
+// Define a list of authorized users based on email
+$authorized_users = ['admin@example.com', 'manager@example.com'];  // Add more emails if needed
+
+// Check if the logged-in user's email is in the authorized list
+$is_authorized = in_array($_SESSION['user_email'], $authorized_users);
+
 // Fetch favorite projects from the database
 try {
     $query = $conn->prepare("SELECT id, name FROM projects WHERE user_email = ? AND is_favorite = 1");
@@ -52,7 +58,21 @@ try {
     exit;
 }
 ?>
-
+  <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-table th, .custom-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .custom-table th {
+            background-color: #f3f4f6;
+        }
+        .custom-table tbody tr:hover {
+            background-color: #f9fafb;
+        }
+    </style>
 <!-- Sidebar Navigation -->
 <aside class="w-64 bg-gray-800 text-gray-100 flex flex-col">
     <div class="p-4 flex items-center justify-center">
@@ -60,26 +80,18 @@ try {
     </div>
     <nav class="flex-1 px-4 space-y-2">
         <a href="dashboard.php" class="block py-2 px-3 rounded hover:bg-gray-700">Dashboard</a>
-        <a href="add_task.php" class="block py-2 px-3 rounded hover:bg-gray-700"> Tasks</a>
+        <a href="add_task.php" class="block py-2 px-3 rounded hover:bg-gray-700">Tasks</a>
         <a href="my_task.php" class="block py-2 px-3 rounded hover:bg-gray-700">My Tasks</a>
-
         <a href="project.php" class="block py-2 px-3 rounded hover:bg-gray-700">Projects</a>
         <a href="member.php" class="block py-2 px-3 rounded hover:bg-gray-700">Members</a>
 
-        <!-- Favorite Projects Section -->
-        <div class="text-gray-400 mt-4">Favorite Projects</div>
-
-        <!-- Loop through favorite projects and display them -->
-        <?php if (count($fav_projects) > 0): ?>
-            <?php foreach ($fav_projects as $project): ?>
-                <p class="block py-2 px-3 rounded">
-                    <?php echo htmlspecialchars($project['name']); ?>
-                </p>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <div class="text-gray-500 px-3">No favorite projects yet.</div>
+        <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
+        <?php if ($is_authorized): ?>
+            <a href="task_answer.php" class="block py-2 px-3 rounded hover:bg-gray-700">View Answers</a>
+            <a href="user_login_date.php" class="block py-2 px-3 rounded hover:bg-gray-700">Login Details</a>
         <?php endif; ?>
 
+
+      
     </nav>
 </aside>
-
