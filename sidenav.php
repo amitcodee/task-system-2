@@ -58,7 +58,16 @@ try {
     exit;
 }
 ?>
-  <style>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"> <!-- Font Awesome Icons -->
+    <style>
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -72,26 +81,86 @@ try {
         .custom-table tbody tr:hover {
             background-color: #f9fafb;
         }
+        /* Custom Sidebar Styles */
+        .sidebar-expanded .sidebar-text {
+            display: inline;
+        }
+        .sidebar-collapsed .sidebar-text {
+            display: none;
+        }
+        .sidebar-collapsed .sidebar-icons-only {
+            justify-content: center;
+        }
+        /* Hide collapse button on large screens */
+        @media (min-width: 1024px) {
+            .toggle-sidebar-btn {
+                display: none;
+            }
+        }
     </style>
-<!-- Sidebar Navigation -->
-<aside class="w-64 bg-gray-800 text-gray-100 flex flex-col">
-    <div class="p-4 flex items-center justify-center">
-        <h1 class="text-lg font-semibold">Techcadd</h1>
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-full">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-gray-800 text-gray-100 flex flex-col transition-all duration-300 sidebar-expanded lg:w-64">
+            <div class="p-4 flex items-center justify-between">
+                <h1 class="text-lg font-semibold sidebar-text">Techcadd</h1>
+                <button id="toggleSidebar" class="text-gray-100 focus:outline-none lg:hidden toggle-sidebar-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-2">
+                <a href="dashboard.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span class="ml-3 sidebar-text">Dashboard</span>
+                </a>
+                <a href="add_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-tasks"></i>
+                    <span class="ml-3 sidebar-text">Tasks</span>
+                </a>
+                <a href="my_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-user"></i>
+                    <span class="ml-3 sidebar-text">My Tasks</span>
+                </a>
+                <a href="project.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-folder"></i>
+                    <span class="ml-3 sidebar-text">Projects</span>
+                </a>
+                <a href="member.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-users"></i>
+                    <span class="ml-3 sidebar-text">Members</span>
+                </a>
+
+                <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
+                <?php if ($is_authorized): ?>
+                    <a href="task_answer.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-comments"></i>
+                        <span class="ml-3 sidebar-text">View Answers</span>
+                    </a>
+                    <a href="user_login_date.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span class="ml-3 sidebar-text">Login Details</span>
+                    </a>
+                <?php endif; ?>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col">
+            <!-- Main content here -->
+        </div>
     </div>
-    <nav class="flex-1 px-4 space-y-2">
-        <a href="dashboard.php" class="block py-2 px-3 rounded hover:bg-gray-700">Dashboard</a>
-        <a href="add_task.php" class="block py-2 px-3 rounded hover:bg-gray-700">Tasks</a>
-        <a href="my_task.php" class="block py-2 px-3 rounded hover:bg-gray-700">My Tasks</a>
-        <a href="project.php" class="block py-2 px-3 rounded hover:bg-gray-700">Projects</a>
-        <a href="member.php" class="block py-2 px-3 rounded hover:bg-gray-700">Members</a>
 
-        <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
-        <?php if ($is_authorized): ?>
-            <a href="task_answer.php" class="block py-2 px-3 rounded hover:bg-gray-700">View Answers</a>
-            <a href="user_login_date.php" class="block py-2 px-3 rounded hover:bg-gray-700">Login Details</a>
-        <?php endif; ?>
+    <!-- JavaScript to toggle the sidebar -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const toggleSidebar = document.getElementById('toggleSidebar');
 
-
-      
-    </nav>
-</aside>
+        toggleSidebar.addEventListener('click', function () {
+            sidebar.classList.toggle('sidebar-expanded');
+            sidebar.classList.toggle('sidebar-collapsed');
+        });
+    </script>
+</body>
+</html>

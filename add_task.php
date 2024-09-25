@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Include Header -->
         <?php include 'header.php'; ?>
 
-        <div class="container mx-auto p-6">
+        <div class="container mx-auto p-6 ">
             <div class="bg-white p-6 rounded-lg shadow-lg">
                 <form method="POST" action="add_task.php" enctype="multipart/form-data">
                     <!-- Task Name -->
