@@ -35,7 +35,7 @@ if (empty($assigned_user_id)) {
     die('You are not assigned to this task.');
 }
 
-// Fetch the task details
+// Fetch the task details from the tasks table
 $task_query = $conn->prepare("
     SELECT tasks.name, tasks.description, tasks.due_date, tasks.status, tasks.task_priority, tasks.task_category, tasks.reminder_time, tasks.location, tasks.task_link, tasks.file_path, projects.name as project_name
     FROM tasks
@@ -44,7 +44,7 @@ $task_query = $conn->prepare("
 ");
 $task_query->bind_param("i", $task_id);
 $task_query->execute();
-$task_query->bind_result($task_name, $task_description, $due_date, $status, $task_priority, $task_category, $reminder_time, $location, $link, $file_path, $project_name);
+$task_query->bind_result($task_name, $task_description, $due_date, $status, $task_priority, $task_category, $reminder_time, $location, $task_link, $task_file_path, $project_name);
 $task_query->fetch();
 $task_query->close();
 
@@ -59,7 +59,7 @@ $task_category = $task_category ?? '';
 $reminder_time = $reminder_time ?? '';
 $location = $location ?? '';
 $task_link = $task_link ?? '';
-$file_path = $file_path ?? '';
+$task_file_path = $task_file_path ?? '';
 
 // Handle comment/file submission or task status update
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -67,27 +67,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $comment = $_POST['comment'] ?? '';
         $output_link = $_POST['output_link'] ?? '';
         $new_status = $_POST['task_status'] ?? $status; // Get the updated task status from dropdown
+        $response_file_path = ''; // Initialize an empty variable for response file path
 
-        // Handle file upload
+        // Handle file upload for task response (Separate from task file in tasks table)
         if (isset($_FILES['file_upload']) && $_FILES['file_upload']['error'] == 0) {
             $upload_dir = 'uploads/';
             $file_name = basename($_FILES['file_upload']['name']);
-            $target_file = $upload_dir . $file_name;
-            if (move_uploaded_file($_FILES['file_upload']['tmp_name'], $target_file)) {
-                $stmt = $conn->prepare("INSERT INTO task_responses (task_id, user_id, comment, file_path, output_link) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("iisss", $task_id, $assigned_user_id, $comment, $target_file, $output_link);
-                $stmt->execute();
-                $stmt->close();
+            $response_file_path = $upload_dir . $file_name;
+            if (!move_uploaded_file($_FILES['file_upload']['tmp_name'], $response_file_path)) {
+                $response_file_path = ''; // Reset if file upload failed
             }
-        } else {
-            // Store only comment and link in the database
-            $stmt = $conn->prepare("INSERT INTO task_responses (task_id, user_id, comment, output_link) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("iiss", $task_id, $assigned_user_id, $comment, $output_link);
-            $stmt->execute();
-            $stmt->close();
         }
 
-        // Update task status (Allow status change to any value, even after it's marked complete)
+        // Insert task response into the task_responses table
+        $stmt = $conn->prepare("INSERT INTO task_responses (task_id, user_id, comment, file_path, output_link) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("iisss", $task_id, $assigned_user_id, $comment, $response_file_path, $output_link);
+        $stmt->execute();
+        $stmt->close();
+
+        // Update task status (if necessary)
         $stmt = $conn->prepare("UPDATE tasks SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $new_status, $task_id);
         $stmt->execute();
@@ -95,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Fetch task responses
+// Fetch task responses from the task_responses table
 $response_query = $conn->prepare("
     SELECT tr.comment, tr.file_path, tr.output_link, tr.created_at, u.name, u.profile_image 
     FROM task_responses tr 
@@ -166,8 +164,8 @@ $response_query->close();
                             <?php if (!empty($task_link)): ?>
                                 <p class="text-sm text-gray-500"><strong>Task Link:</strong> <a href="<?php echo htmlspecialchars($task_link); ?>" class="text-blue-500 hover:underline" target="_blank">View Link</a></p>
                             <?php endif; ?>
-                            <?php if (!empty($file_path)): ?>
-                                <p class="text-sm text-gray-500"><strong>Attached File:</strong> <a href="<?php echo htmlspecialchars($file_path); ?>" class="text-blue-500 hover:underline" target="_blank">View File</a></p>
+                            <?php if (!empty($task_file_path)): ?>
+                                <p class="text-sm text-gray-500"><strong>Attached File:</strong> <a href="uploads/<?php echo htmlspecialchars($task_file_path); ?>" class="text-blue-500 hover:underline" target="_blank">View File</a></p>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -198,11 +196,39 @@ $response_query->close();
                             </select>
                         </div>
 
-                        <div class="flex justify-end space-x-3">
-                            <button type="submit" name="submit_update" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition">
-                                Submit Update
-                            </button>
-                        </div>
+                        <?php
+// Assuming you have already fetched the task's due date in the `$due_date` variable
+
+// Get the current date
+$current_date = date('Y-m-d');
+
+// Check if the task is overdue (i.e., if the current date is past the due date)
+$is_overdue = $due_date < $current_date;
+?>
+
+<!-- Submit Button -->
+<div class="flex justify-end space-x-3">
+    <button type="submit" name="submit_update" id="submitUpdateBtn" 
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition">
+        Submit Update
+    </button>
+</div>
+
+<!-- Pass the overdue status to JavaScript -->
+<script>
+    const isOverdue = <?php echo json_encode($is_overdue); ?>;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const submitButton = document.getElementById('submitUpdateBtn');
+        
+        if (isOverdue) {
+            submitButton.disabled = true;
+            submitButton.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+            submitButton.classList.add('bg-gray-400', 'cursor-not-allowed');
+        }
+    });
+</script>
+
                     </form>
 
                     <!-- Task Updates Section -->
@@ -223,10 +249,13 @@ $response_query->close();
                                     <div class="flex-1">
                                         <p class="text-sm font-medium text-gray-700"><?php echo htmlspecialchars($response['username']); ?></p>
                                         <p class="text-gray-600"><?php echo htmlspecialchars($response['comment']); ?></p>
-                                        <?php if ($response['file_path']): ?>
+                                        
+                                        <!-- Display response file (if uploaded) -->
+                                        <?php if (!empty($response['file_path'])): ?>
                                             <p><a href="<?php echo htmlspecialchars($response['file_path']); ?>" class="text-blue-500 hover:underline" target="_blank">View File</a></p>
                                         <?php endif; ?>
-                                        <?php if ($response['output_link']): ?>
+                                        
+                                        <?php if (!empty($response['output_link'])): ?>
                                             <p><a href="<?php echo htmlspecialchars($response['output_link']); ?>" class="text-blue-500 hover:underline" target="_blank">View Link</a></p>
                                         <?php endif; ?>
                                         <p class="text-xs text-gray-400"><?php echo htmlspecialchars($response['created_at']); ?></p>

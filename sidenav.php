@@ -117,8 +117,12 @@ try {
                 </a>
                 <?php if ($is_authorized): ?>
                 <a href="add_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
+                    <i class="fas fa-plus"></i>
+                    <span class="ml-3 sidebar-text">Add Tasks</span>
+                </a>
+                <a href="all_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                     <i class="fas fa-tasks"></i>
-                    <span class="ml-3 sidebar-text">Tasks</span>
+                    <span class="ml-3 sidebar-text">All Tasks</span>
                 </a>
                 <?php endif; ?>
                 <a href="my_task.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">

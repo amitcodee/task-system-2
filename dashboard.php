@@ -1,40 +1,77 @@
 <?php
 session_start();
+include 'config.php'; // Include your database connection
+
+// Check if the user is logged in
 if (!isset($_SESSION['user_email'])) {
     header('Location: login.php');
     exit;
 }
 
-include 'config.php'; // Include your database connection
+// Fetch the logged-in user's role and ID
+$user_email = $_SESSION['user_email'];
+$user_query = $conn->prepare("SELECT id, role FROM users WHERE email = ?");
+$user_query->bind_param("s", $user_email);
+$user_query->execute();
+$user_query->bind_result($user_id, $user_role);
+$user_query->fetch();
+$user_query->close();
+
+// Conditionally set the query filter for non-admin users
+$query_condition = "";
+if ($user_role !== 'Admin') {
+    $query_condition = " AND task_assignees.user_id = $user_id";
+}
 
 // Fetch card data for all-time stats
 
-// Total tasks (All time)
-$total_tasks_query = "SELECT COUNT(*) as total_tasks FROM tasks";
+// Total tasks (For Admin: all tasks, For other users: only their tasks)
+$total_tasks_query = "
+    SELECT COUNT(DISTINCT tasks.id) as total_tasks 
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE 1=1 $query_condition
+";
 $total_tasks_result = $conn->query($total_tasks_query);
 $total_tasks_count = $total_tasks_result->fetch_assoc()['total_tasks'];
 
 // Pending tasks
-$pending_tasks_query = "SELECT COUNT(*) as pending_tasks FROM tasks WHERE status = 'Pending'";
+$pending_tasks_query = "
+    SELECT COUNT(DISTINCT tasks.id) as pending_tasks 
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE tasks.status = 'Pending' $query_condition
+";
 $pending_tasks_result = $conn->query($pending_tasks_query);
 $pending_tasks_count = $pending_tasks_result->fetch_assoc()['pending_tasks'];
 
 // In-progress tasks
-$in_progress_tasks_query = "SELECT COUNT(*) as in_progress_tasks FROM tasks WHERE status = 'In Progress'";
+$in_progress_tasks_query = "
+    SELECT COUNT(DISTINCT tasks.id) as in_progress_tasks 
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE tasks.status = 'In Progress' $query_condition
+";
 $in_progress_tasks_result = $conn->query($in_progress_tasks_query);
 $in_progress_tasks_count = $in_progress_tasks_result->fetch_assoc()['in_progress_tasks'];
 
 // Completed tasks
-$completed_tasks_query = "SELECT COUNT(*) as completed_tasks FROM tasks WHERE status = 'Complete'";
+$completed_tasks_query = "
+    SELECT COUNT(DISTINCT tasks.id) as completed_tasks 
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE tasks.status = 'Complete' $query_condition
+";
 $completed_tasks_result = $conn->query($completed_tasks_query);
 $completed_tasks_count = $completed_tasks_result->fetch_assoc()['completed_tasks'];
 
 // Today's assigned tasks
 $today_date = date('Y-m-d');
 $today_tasks_query = "
-    SELECT COUNT(*) as today_tasks 
+    SELECT COUNT(DISTINCT tasks.id) as today_tasks 
     FROM tasks 
-    WHERE DATE(created_at) = '$today_date'
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE DATE(tasks.created_at) = '$today_date' $query_condition
 ";
 $today_tasks_result = $conn->query($today_tasks_query);
 $today_tasks_count = $today_tasks_result->fetch_assoc()['today_tasks'];
@@ -42,9 +79,10 @@ $today_tasks_count = $today_tasks_result->fetch_assoc()['today_tasks'];
 // This week's assigned tasks
 $this_week_start = date('Y-m-d', strtotime('monday this week'));
 $week_tasks_query = "
-    SELECT COUNT(*) as week_tasks 
+    SELECT COUNT(DISTINCT tasks.id) as week_tasks 
     FROM tasks 
-    WHERE DATE(created_at) >= '$this_week_start'
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE DATE(tasks.created_at) >= '$this_week_start' $query_condition
 ";
 $week_tasks_result = $conn->query($week_tasks_query);
 $week_tasks_count = $week_tasks_result->fetch_assoc()['week_tasks'];
@@ -53,11 +91,12 @@ $week_tasks_count = $week_tasks_result->fetch_assoc()['week_tasks'];
 $this_month_start = date('Y-m-01');
 $month_task_status_query = "
     SELECT 
-        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
-        SUM(CASE WHEN status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
-    FROM tasks
-    WHERE created_at >= '$this_month_start'
+        SUM(CASE WHEN tasks.status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
+        SUM(CASE WHEN tasks.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
+        SUM(CASE WHEN tasks.status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE tasks.created_at >= '$this_month_start' $query_condition
 ";
 $month_task_status_result = $conn->query($month_task_status_query);
 $month_task_status_data = $month_task_status_result->fetch_assoc();
@@ -65,11 +104,12 @@ $month_task_status_data = $month_task_status_result->fetch_assoc();
 // Task breakdown for the current week
 $week_task_status_query = "
     SELECT 
-        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
-        SUM(CASE WHEN status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
-    FROM tasks
-    WHERE created_at >= '$this_week_start'
+        SUM(CASE WHEN tasks.status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
+        SUM(CASE WHEN tasks.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
+        SUM(CASE WHEN tasks.status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE tasks.created_at >= '$this_week_start' $query_condition
 ";
 $week_task_status_result = $conn->query($week_task_status_query);
 $week_task_status_data = $week_task_status_result->fetch_assoc();
@@ -77,15 +117,18 @@ $week_task_status_data = $week_task_status_result->fetch_assoc();
 // Task breakdown for all time
 $all_time_task_status_query = "
     SELECT 
-        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
-        SUM(CASE WHEN status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
-        SUM(CASE WHEN status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
-    FROM tasks
+        SUM(CASE WHEN tasks.status = 'Pending' THEN 1 ELSE 0 END) as pending_tasks,
+        SUM(CASE WHEN tasks.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
+        SUM(CASE WHEN tasks.status = 'Complete' THEN 1 ELSE 0 END) as completed_tasks
+    FROM tasks 
+    LEFT JOIN task_assignees ON tasks.id = task_assignees.task_id
+    WHERE 1=1 $query_condition
 ";
 $all_time_task_status_result = $conn->query($all_time_task_status_query);
 $all_time_task_status_data = $all_time_task_status_result->fetch_assoc();
 
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
