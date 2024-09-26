@@ -27,7 +27,9 @@ $profile_image_src = $profile_image ? $profile_image : 'https://via.placeholder.
 ?>
 
 <header class="flex items-center justify-between bg-white p-4 shadow">
-    <h2 class="text-xl font-semibold">Dashboard</h2>
+    <h2 class="text-xl font-semibold">
+        Techcadd Computer Education Pvt. Ltd.
+    </h2>
     <div class="flex items-center">
        
 

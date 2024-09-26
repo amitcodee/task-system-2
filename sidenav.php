@@ -11,52 +11,11 @@ if (session_status() == PHP_SESSION_NONE) {
 // Include the database connection file
 include 'config.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_email'])) {
-    echo "Session not found. Redirecting to login page.";
-    header('Location: login.php');
-    exit;
-}
-
 // Define a list of authorized users based on email
-$authorized_users = ['admin@example.com', 'manager@example.com'];  // Add more emails if needed
+$authorized_users = ['admin@example.com', 'manager@example.com'];
 
 // Check if the logged-in user's email is in the authorized list
 $is_authorized = in_array($_SESSION['user_email'], $authorized_users);
-
-// Fetch favorite projects from the database
-try {
-    $query = $conn->prepare("SELECT id, name FROM projects WHERE user_email = ? AND is_favorite = 1");
-
-    if (!$query) {
-        throw new Exception("Failed to prepare SQL query: " . $conn->error);
-    }
-
-    // Bind the email parameter
-    $query->bind_param("s", $_SESSION['user_email']);
-
-    // Execute the query
-    $query->execute();
-
-    // Bind the result fields
-    $query->bind_result($project_id, $project_name);
-
-    // Fetch the favorite projects
-    $fav_projects = [];
-    while ($query->fetch()) {
-        $fav_projects[] = [
-            'id' => $project_id,
-            'name' => $project_name
-        ];
-    }
-
-    // Close the statement
-    $query->close();
-} catch (Exception $e) {
-    // If there's an error, display it
-    echo "Error fetching favorite projects: " . $e->getMessage();
-    exit;
-}
 ?>
 
 <!DOCTYPE html>
@@ -73,21 +32,6 @@ try {
             font-family: 'Inter', sans-serif;
         }
 
-        .custom-table th,
-        .custom-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .custom-table th {
-            background-color: #f3f4f6;
-        }
-
-        .custom-table tbody tr:hover {
-            background-color: #f9fafb;
-        }
-
-        /* Custom Sidebar Styles */
         .sidebar-expanded .sidebar-text {
             display: inline;
         }
@@ -100,24 +44,53 @@ try {
             justify-content: center;
         }
 
-        /* Hide collapse button on large screens */
-        @media (min-width: 1024px) {
-            .toggle-sidebar-btn {
-                display: none;
-            }
+        .sidebar-expanded {
+            width: 16rem;
+        }
+
+        .sidebar-collapsed {
+            width: 5rem;
+        }
+
+        /* Toggle button inside sidebar */
+        .toggle-sidebar-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            margin: 1rem auto;
+            background-color: #374151;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        /* Main content adjusts based on sidebar size */
+        .content-expanded {
+            margin-left: 16rem;
+            transition: margin-left 0.3s;
+        }
+
+        .content-collapsed {
+            margin-left: 4rem;
+            transition: margin-left 0.3s;
         }
     </style>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex h-full">
+    <div class="flex h-screen">
         <!-- Sidebar -->
-        <aside id="sidebar" class="w-64 bg-gray-800 text-gray-100 flex flex-col transition-all duration-300 sidebar-expanded lg:w-64">
-            <div class="p-4 flex items-center justify-between">
+        <aside id="sidebar" class="bg-gray-800 text-gray-100 flex flex-col transition-all duration-300 sidebar-expanded">
+            <!-- <div class="p-4 flex items-center justify-between">
+                <img src="https://techcadd.com/assets/img/logo1.png" alt="Logo" class="h-8 d-block sidebar-text">
                 <h1 class="text-lg font-semibold sidebar-text">Techcadd</h1>
-                <button id="toggleSidebar" class="text-gray-100 focus:outline-none lg:hidden toggle-sidebar-btn">
-                    <i class="fas fa-bars"></i>
-                </button>
+            </div> -->
+
+            <!-- Sidebar Toggle Button (inside sidebar) -->
+            <div id="toggleSidebar" class="toggle-sidebar-btn">
+                <i class="fas fa-bars"></i>
             </div>
 
             <nav class="flex-1 px-4 space-y-2">
@@ -129,7 +102,6 @@ try {
                     <i class="fas fa-user"></i>
                     <span class="ml-3 sidebar-text">My Tasks</span>
                 </a>
-                <!-- Only show this section if the user is authorized (e.g., admin or manager) -->
                 <?php if ($is_authorized): ?>
                     <a href="project.php" class="flex items-center py-2 px-3 rounded hover:bg-gray-700">
                         <i class="fas fa-folder"></i>
@@ -159,20 +131,23 @@ try {
             </nav>
         </aside>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col">
-            <!-- Main content here -->
-        </div>
+       
     </div>
 
     <!-- JavaScript to toggle the sidebar -->
     <script>
         const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('main-content');
         const toggleSidebar = document.getElementById('toggleSidebar');
 
         toggleSidebar.addEventListener('click', function() {
+            // Toggle the sidebar class
             sidebar.classList.toggle('sidebar-expanded');
             sidebar.classList.toggle('sidebar-collapsed');
+
+            // Adjust main content margin
+            mainContent.classList.toggle('content-expanded');
+            mainContent.classList.toggle('content-collapsed');
         });
     </script>
 </body>

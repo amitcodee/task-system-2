@@ -170,16 +170,21 @@ $query->close();
                 <input type="email" id="member_email" name="member_email" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
             </div>
 
-            <div class="mb-4">
+            <!-- Password Input with Eye Icon -->
+            <div class="mb-4 relative">
                 <label for="member_password" class="block text-sm font-medium text-gray-700">Password</label>
                 <input type="password" id="member_password" name="member_password" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
+                <!-- Eye Icon -->
+                <span class="absolute inset-y-0 right-3 flex items-center cursor-pointer" onclick="togglePasswordVisibility()">
+                    <i id="eyeIcon" class="fas fa-eye text-gray-400 mt-5"></i>
+                </span>
             </div>
 
             <div class="mb-6">
                 <label for="member_role" class="block text-sm font-medium text-gray-700">Role</label>
                 <select id="member_role" name="member_role" class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required>
                     <option value="Admin">Admin</option>
-                    <option value="Manager">Manager</option>
+                    <!-- <option value="Manager">Manager</option> -->
                     <option value="Member">Member</option>
                 </select>
             </div>
@@ -191,6 +196,18 @@ $query->close();
         </form>
     </div>
 </div>
+
+<!-- Toggle Password Visibility Script -->
+<script>
+    function togglePasswordVisibility() {
+        const passwordField = document.getElementById('member_password');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        eyeIcon.classList.toggle('fa-eye-slash');
+    }
+</script>
+
 
 <!-- Modal for Edit Member -->
 <div id="editMemberModal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">

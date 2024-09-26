@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
     <style>
         /* Custom styles for a modern look */
         .bg-gradient {
@@ -32,15 +33,47 @@
         .password-toggle:hover {
             color: #667eea;
         }
+
+        .logo {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+
+        .company-name {
+            color: #fff;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .greeting {
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        i{
+            margin-top: 20px;
+        }
     </style>
 </head>
 
-<body class="bg-gradient min-h-screen flex items-center justify-center">
+<body class="bg-gradient min-h-screen flex flex-col items-center justify-center">
+
+    <!-- Logo and Company Name -->
+    <div class="text-center mb-6">
+        <!-- <img src="https://scontent.fluh3-3.fna.fbcdn.net/v/t39.30808-6/312219580_538157488310903_5690662163397803386_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=KT436HGYxLUQ7kNvgGxhVri&_nc_ht=scontent.fluh3-3.fna&oh=00_AYBDrcrHEkbBa_HHsV2bubdckkZvj9AGfvGU9ykldEW5lQ&oe=66FAE947" alt="Techcadd Logo" class="logo mx-auto"> -->
+        <h1 class="company-name" style="font-size:xx-large">Techcadd Computer Education Pvt. Ltd.</h1>
+    </div>
+
+    <!-- Greeting message -->
+    <!-- <div class="greeting" id="wish"></div> -->
+
     <div class="w-full max-w-md bg-white p-8 rounded-lg form-container">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">Welcome Back!</h1>
             <p class="text-gray-500 mt-2">Please login to your account</p>
         </div>
+
         <form action="auth.php" method="POST">
             <!-- Email Input -->
             <div class="mb-6 relative">
@@ -60,15 +93,6 @@
                 </span>
             </div>
 
-            <!-- Remember Me & Forgot Password -->
-            <!-- <div class="flex items-center justify-between mb-6">
-                <label class="flex items-center text-sm text-gray-600">
-                    <input type="checkbox" name="remember" class="form-checkbox bg-gray-200 text-indigo-500 focus:ring-indigo-500 rounded">
-                    <span class="ml-2">Remember me</span>
-                </label>
-                <a href="#" class="text-sm text-indigo-500 hover:underline">Forgot your password?</a>
-            </div> -->
-
             <!-- Login Button -->
             <div class="mb-6">
                 <button type="submit" class="w-full p-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition-all">
@@ -87,19 +111,17 @@
             passwordField.setAttribute('type', type);
             eyeIcon.classList.toggle('fa-eye-slash');
         }
-  
-
 
         // Greeting message based on the time of day
         var d = new Date();
         var time = d.getHours();
 
         if (time < 12) {
-           document.getElementById("wish").innerHTML = "Good morning!";
+            document.getElementById("wish").innerHTML = "Good morning!";
         } else if (time >= 12 && time < 18) {
-           document.getElementById("wish").innerHTML = "Good afternoon!";
+            document.getElementById("wish").innerHTML = "Good afternoon!";
         } else {
-           document.getElementById("wish").innerHTML = "Good evening!";
+            document.getElementById("wish").innerHTML = "Good evening!";
         }
     </script>
 
