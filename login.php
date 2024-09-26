@@ -61,13 +61,13 @@
             </div>
 
             <!-- Remember Me & Forgot Password -->
-            <div class="flex items-center justify-between mb-6">
+            <!-- <div class="flex items-center justify-between mb-6">
                 <label class="flex items-center text-sm text-gray-600">
                     <input type="checkbox" name="remember" class="form-checkbox bg-gray-200 text-indigo-500 focus:ring-indigo-500 rounded">
                     <span class="ml-2">Remember me</span>
                 </label>
                 <a href="#" class="text-sm text-indigo-500 hover:underline">Forgot your password?</a>
-            </div>
+            </div> -->
 
             <!-- Login Button -->
             <div class="mb-6">

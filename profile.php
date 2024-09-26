@@ -17,7 +17,7 @@ $query->bind_result($user_name, $user_email, $stored_password, $profile_image);
 $query->fetch();
 $query->close();
 
-// Handle form submission to update profile (only update UI without affecting login)
+// Handle form submission to update profile
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_name = $_POST['name'];
     $new_email = $_POST['email'];
@@ -63,23 +63,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Execute the query
     if ($stmt->execute()) {
+        // Set session success message
+        $_SESSION['profile_update_success'] = "Profile updated successfully!";
+
         // Update session with the new email only if it's different from the current one
         if ($new_email !== $user_email) {
             $_SESSION['user_email'] = $new_email;
         }
 
-        // Show success message
-        echo "<script>alert('Profile updated successfully!');</script>";
+        // Redirect to the profile page to trigger the success alert
+        header('Location: profile.php');
+        exit;
     } else {
         echo "<script>alert('Error updating profile.');</script>";
     }
     $stmt->close();
-
-    // Refresh the page to reflect the changes without affecting login
-    header('Location: profile.php');
-    exit;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -89,6 +90,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        // Display success alert if profile update is successful
+        window.onload = function () {
+            const successMessage = "<?php echo isset($_SESSION['profile_update_success']) ? $_SESSION['profile_update_success'] : ''; ?>";
+            if (successMessage) {
+                alert(successMessage);
+                <?php unset($_SESSION['profile_update_success']); ?>  // Clear success message from session after displaying
+            }
+        };
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -119,7 +130,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
 
                             <!-- Name -->
-
                             <div class="mb-4">
                                 <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
                                 <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user_name); ?>" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500" required>
@@ -141,7 +151,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="mb-6">
                                 <label for="profile_image" class="block text-sm font-medium text-gray-700">Profile Image</label>
                                 <input type="file" id="profile_image" name="profile_image" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-
                             </div>
 
                             <!-- Save Button -->

@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Redirect to tasks list or success page
-    header("Location: my_task.php");
+    header("Location: all_task.php");
     exit;
 }
 ?>

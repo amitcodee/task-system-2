@@ -52,7 +52,6 @@ $profile_image_src = $profile_image ? $profile_image : 'https://via.placeholder.
                 </div>
                 <div class="border-t border-gray-200"></div>
                 <a href="profile.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</a>
-                <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
                 <a href="logout.php" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
             </div>
         </div>
