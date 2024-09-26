@@ -236,39 +236,65 @@ $query->close();
 
             <!-- Project Color -->
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700">Color</label>
-                <div class="flex space-x-2 mt-2">
-                    <!-- Color Options -->
-                    <label>
-                        <input type="radio" name="color" value="#A9A9A9" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-gray-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#FF4500" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-orange-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#FFD700" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-yellow-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#32CD32" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-green-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#00BFFF" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-blue-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#6A5ACD" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-purple-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                    <label>
-                        <input type="radio" name="color" value="#FF69B4" class="sr-only" required>
-                        <span class="block w-8 h-8 rounded-full bg-pink-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
-                    </label>
-                </div>
-            </div>
+    <label class="block text-sm font-medium text-gray-700">Color</label>
+    <div class="flex space-x-2 mt-2">
+        <!-- Predefined Color Options -->
+        <label>
+            <input type="radio" name="color" value="#A9A9A9" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-gray-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#FF4500" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-orange-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#FFD700" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-yellow-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#32CD32" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-green-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#00BFFF" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-blue-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#6A5ACD" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-purple-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+        <label>
+            <input type="radio" name="color" value="#FF69B4" class="sr-only" required>
+            <span class="block w-8 h-8 rounded-full bg-pink-500 border-2 border-gray-300 cursor-pointer" onclick="selectColor(this)"></span>
+        </label>
+
+        <!-- Custom Color Picker -->
+        <label class="relative">
+            <input type="radio" name="color" id="customColorRadio" value="" class="sr-only">
+            <span class="block w-8 h-8 rounded-full bg-transparent border-2 border-gray-300 cursor-pointer" id="customColorDisplay"></span>
+            <input type="color" id="customColorPicker" class="absolute inset-0 opacity-0 cursor-pointer" onchange="selectCustomColor(this)">
+        </label>
+    </div>
+</div>
+
+<script>
+    function selectColor(el) {
+        // Deselect custom color if another color is chosen
+        document.getElementById('customColorRadio').checked = false;
+    }
+
+    function selectCustomColor(input) {
+        const customColor = input.value;
+        const customColorDisplay = document.getElementById('customColorDisplay');
+        const customColorRadio = document.getElementById('customColorRadio');
+        
+        // Set the color picker as the chosen color
+        customColorDisplay.style.backgroundColor = customColor;
+        customColorRadio.value = customColor;
+        customColorRadio.checked = true;
+    }
+</script>
+
 
             <!-- Buttons -->
             <div class="flex justify-end space-x-2">
