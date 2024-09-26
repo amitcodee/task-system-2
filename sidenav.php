@@ -59,7 +59,7 @@ $is_authorized = in_array($_SESSION['user_email'], $authorized_users);
             justify-content: center;
             width: 2.5rem;
             height: 2.5rem;
-            margin: 1rem auto;
+          
             background-color: #374151;
             color: white;
             border-radius: 50%;
@@ -87,10 +87,16 @@ $is_authorized = in_array($_SESSION['user_email'], $authorized_users);
                 <img src="https://techcadd.com/assets/img/logo1.png" alt="Logo" class="h-8 d-block sidebar-text">
                 <h1 class="text-lg font-semibold sidebar-text">Techcadd</h1>
             </div> -->
-
+            <img src="https://techcadd.com/assets/img/logo1.png" alt="Logo" class=" d-block sidebar-text p-3">
             <!-- Sidebar Toggle Button (inside sidebar) -->
+            <div class="flex  items-center justify-center">
             <div id="toggleSidebar" class="toggle-sidebar-btn">
                 <i class="fas fa-bars"></i>
+               
+            </div>
+            <div class="p-4 flex items-center justify-between">
+                <h1 class="text-lg font-semibold sidebar-text">Techcadd</h1>
+            </div>
             </div>
 
             <nav class="flex-1 px-4 space-y-2">

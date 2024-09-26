@@ -104,8 +104,8 @@ $query->close();
                         <?php endif; ?>
                     </div>
 
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
+                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 divide-y divide-gray-200">
+                        <thead class=" text-gray-700 uppercase bg-gray-50 ">
                             <tr>
                                 <th class="px-6 py-3">Name</th>
                                 <th class="px-6 py-3">Email</th>
