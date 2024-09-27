@@ -32,17 +32,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 session_regenerate_id(true);
 
                 // Update the last login date and time in the database
-               // Set the time zone to India (Asia/Kolkata)
-$date = new DateTime("now", new DateTimeZone('Asia/Kolkata'));
+                // Set the time zone to India (Asia/Kolkata)
+                $date = new DateTime("now", new DateTimeZone('Asia/Kolkata'));
 
-// Get the current date and time in the specified time zone
-$current_time = $date->format('Y-m-d H:i:s');
+                // Get the current date and time in the specified time zone
+                $current_time = $date->format('Y-m-d H:i:s');
 
-// Update the last_login field for the user
-$update_login = $conn->prepare("UPDATE users SET last_login = ? WHERE id = ?");
-$update_login->bind_param("si", $current_time, $user_id);
-$update_login->execute();
-$update_login->close();
+                // Update the last_login field for the user
+                $update_login = $conn->prepare("UPDATE users SET last_login = ? WHERE id = ?");
+                $update_login->bind_param("si", $current_time, $user_id);
+                $update_login->execute();
+                $update_login->close();
 
 
                 // Redirect to dashboard
@@ -77,4 +77,3 @@ $update_login->close();
     header("Location: login.php");
     exit();
 }
-?>
