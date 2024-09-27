@@ -49,7 +49,7 @@ $is_authorized = in_array($_SESSION['user_email'], $authorized_users);
         }
 
         .sidebar-collapsed {
-            width: 5rem;
+            width: 6rem;
         }
 
         /* Toggle button inside sidebar */
@@ -59,7 +59,7 @@ $is_authorized = in_array($_SESSION['user_email'], $authorized_users);
             justify-content: center;
             width: 2.5rem;
             height: 2.5rem;
-          
+          margin: 10px;
             background-color: #374151;
             color: white;
             border-radius: 50%;
